@@ -76,7 +76,7 @@ func InitPlaygroundConf(){
             StorageDir               string                   `yaml:"storage_dir"`
             LogDir                   string                   `yaml:"log_dir"`
             PriorityNetworks         string                   `yaml:"priority_networks"`
-            Config                   map[string]string        `yaml:"configs`
+            Config                   map[string]string        `yaml:"config"`
         } {
             Host:                    "127.0.0.1",
             SshPort:                 22,

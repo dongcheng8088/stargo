@@ -28,8 +28,8 @@ func Downgrade(clusterName string, clusterVersion string) {
  
     oldVersion := module.GYamlConf.ClusterInfo.Version
     newVersion := clusterVersion
-    if !(oldVersion > newVersion) {
-        infoMess = fmt.Sprintf("OldVersion = %s  NewVersion = %s, the NewVersion is not higher than OldVersion", oldVersion, newVersion)
+    if compareVersions(oldVersion, newVersion) <= 0 {
+        infoMess = fmt.Sprintf("OldVersion = %s  NewVersion = %s, the NewVersion is not lower than OldVersion", oldVersion, newVersion)
         utl.Log("ERROR", infoMess)
         os.Exit(1)
     } else {

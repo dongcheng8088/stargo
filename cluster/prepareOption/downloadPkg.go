@@ -42,12 +42,13 @@ func GetDownloadUrl(srVersion string)  (downloadUrl string) {
 
     repoUrl = module.GRepo.Repo + "/packageVersion.list"
     res, err := http.Get(repoUrl)
-    defer res.Body.Close()
-    if err != nil { 
+    if err != nil {
         infoMess = fmt.Sprintf("Error in create http get request when download the repo list. [error = %v]", err)
         utl.Log("ERROR", infoMess)
         os.Exit(1)
     }
+    // res 只有在 err == nil 时才非 nil，defer 必须放在 err 检查之后
+    defer res.Body.Close()
 
     robots, err := ioutil.ReadAll(res.Body)
     if err != nil{ 

@@ -1,77 +1,45 @@
 package utl
 
-import(
-    "fmt"
-    "time"
-    "os"
-//    "io"
-//    "io/ioutil"
-    "bufio"
+import (
+	"fmt"
+	"os"
+	"time"
+
+	//    "io"
+	//    "io/ioutil"
+	"bufio"
 )
 
 /*
-
-LogLevel 
+LogLevel
 - DEBUG     10
 - INFO      20
 - WARN      30
 - ERROR     40
-
 */
-//var GLOGLEVEL string = "DEBUG"
 var GLOGLEVEL string = "DEBUG"
+var logFileName = "log.txt"
 
 func Log(logLevel string, mess string) {
 
+	dt := string(time.Now().Format("2006/01/02 15:04:05"))
 
-    dt := string(time.Now().Format("20060102-150405"))
-
-    debugFile := "debug.log"
-
-    if GLOGLEVEL == "DEBUG" {
-
-	/*
-	file, err := os.OpenFile(debugFile, os.O_APPEND|os.O_CREATE, 0666)
-	if err != nil {
-            fmt.Printf("Error in open debug.log")
+	// GLOGLEVEL 为 DEBUG 时，所有日志额外写入文件
+	if GLOGLEVEL == "DEBUG" {
+		logMess := fmt.Sprintf("[%s %s] %s", dt, logLevel, mess)
+		file, err := os.OpenFile(logFileName, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
+		if err != nil {
+			// 不能在 Log 内部再调用 Log（会递归），错误直接输出到 stderr
+			fmt.Fprintf(os.Stderr, "Error in open log file [%s], error = %v\n", logFileName, err)
+		} else {
+			defer file.Close()
+			write := bufio.NewWriter(file)
+			write.WriteString(logMess)
+			write.Flush()
+		}
 	}
-	defer file.Close()
-	logMess := fmt.Sprintf("[%s %s] %s", dt, logLevel, mess)
-	_, _ = io.WriteString(file, logMess)
-        */
-	logMess := fmt.Sprintf("[%s %s] %s", dt, logLevel, mess)
-        file, _ := os.OpenFile(debugFile, os.O_WRONLY|os.O_APPEND, 0666)
-	defer file.Close()
-	write := bufio.NewWriter(file)
-        write.WriteString(logMess)
-	write.Flush()
-    }
 
-    // logLevel: DEBUG INFO WARN ERROR
-
-    switch logLevel {
-        case "DEBUG":
-            // output: DEBUG INFO WARN ERROR
-            //fmt.Printf("[\x1b[47;30m%s\x1b[0m\x1b[43;30m%8s\x1b[0m] %s\n", dt, logLevel, mess)
-	    debugFile = "debug.log"
-        case "INFO":
-	    if logLevel != "DEBUG" {
-	        fmt.Printf("[\x1b[47;30m%s\x1b[0m\x1b[43;30m%8s\x1b[0m] %s\n", dt, logLevel, mess)
-	    }
-	case "WARN":
-	    if logLevel != "DEBUG" || logLevel != "INFO" {
-	        fmt.Printf("[\x1b[47;30m%s\x1b[0m\x1b[43;30m%8s\x1b[0m] %s\n", dt, logLevel, mess)
-	    }
-	case "ERROR":
-	    if logLevel != "DEBUG" || logLevel != "INFO" || logLevel != "WARN" {
-                fmt.Printf("[\x1b[47;30m%s\x1b[0m\x1b[43;30m%8s\x1b[0m] %s\n", dt, logLevel, mess)
-            }
-	default:
-	    fmt.Printf("[\x1b[47;30m%s\x1b[0m\x1b[43;30m%8s\x1b[0m] %s\n", dt, logLevel, mess)
-    }
-    //fmt.Printf("%s   %8s %15s  %s\n", dt, logLevel, process, mess)
-    //fmt.Printf("[\x1b[47;30m%s\x1b[0m\x1b[43;30m%8s\x1b[0m] %s\n", dt, logLevel, mess)
-
+	// logLevel: DEBUG INFO WARN ERROR
+	// 所有级别均输出到终端
+	fmt.Printf("[\x1b[47;30m%s\x1b[0m\x1b[43;30m%8s\x1b[0m] %s\n", dt, logLevel, mess)
 }
-
-

@@ -47,11 +47,12 @@ func ImportCluster(clusterName string, metaFile string) {
     module.InitConf(clusterName, metaFile)
     //fmt.Println(module.GYamlConf.FeServers)
     feEntryId, err := checkStatus.GetFeEntry(-1)
-    module.SetFeEntry(feEntryId)
-    if err != nil {
-        infoMess = fmt.Sprintf("Error in get FE Entry ID when import cluter info.")
+    if err != nil || feEntryId == -1 {
+        infoMess = fmt.Sprintf("Error in get FE Entry ID when import cluster info, please check the FE nodes status first. [error = %v]", err)
         utl.Log("ERROR", infoMess)
+        os.Exit(1)
     }
+    module.SetFeEntry(feEntryId)
 
 
     module.GYamlConf.ClusterInfo.User = module.GYamlConf.Global.User
