@@ -8,6 +8,13 @@
       "args": ["build", "-v", "-o", "${workspaceFolder}/bin/stargo", "."],
       "options": { "cwd": "${workspaceFolder}" },
       "group": "build"
+    },
+    {
+      "label": "同步配置到bin",
+      "type": "shell",
+      "command": "bash",
+      "args": ["${workspaceFolder}/scripts/sync-conf.sh"],
+      "options": { "cwd": "${workspaceFolder}" }
     }
   ]
 }

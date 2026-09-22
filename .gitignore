@@ -78,13 +78,6 @@ cluster/scaleOut.bak/
 !.env.example
 
 # 本地集群配置（可能含真实 IP/密码），模板保留
-sr-c1.yaml
-sr-c1.json
-importTest.yaml
-importTest.json
-repo.yaml
-repo.json
-# deploy-template.json 是模板，需保留入库，故不忽略
 
 # ===================== 其他 =====================
 # 临时测试文件

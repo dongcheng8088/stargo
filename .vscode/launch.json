@@ -10,8 +10,9 @@
             "request": "launch",
             "mode": "debug",
             "program": "${workspaceFolder}",
-            "cwd": "${workspaceFolder}",
-            "console": "integratedTerminal"
+            "cwd": "${workspaceFolder}/bin",
+            "console": "integratedTerminal",
+            "preLaunchTask": "同步配置到bin"
         }
     ]
 }
