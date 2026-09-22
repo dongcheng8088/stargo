@@ -1,16 +1,14 @@
 package module
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/user"
 	utl "stargo/sr-utl"
 	"strings"
 	"time"
-
-	"gopkg.in/yaml.v2"
 )
 
 const NULLSTR = ""
@@ -32,91 +30,91 @@ var GRepo *RepoStruct
 var GDownloadPath string
 
 type RepoStruct struct {
-	Repo string `yaml:"repo"`
+	Repo string `json:"repo"`
 }
 
 type ConfStruct struct {
 	ClusterInfo struct {
-		User       string `yaml:"user"`
-		Version    string `yaml:"version"`
-		CreateDate string `yaml:"create_date"`
-		MetaPath   string `yaml:"meta_path"`
-		PrivateKey string `yaml:"private_key"`
-	} `yaml:"clusterinfo"`
+		User       string `json:"user"`
+		Version    string `json:"version"`
+		CreateDate string `json:"create_date"`
+		MetaPath   string `json:"meta_path"`
+		PrivateKey string `json:"private_key"`
+	} `json:"clusterinfo"`
 
 	Global struct {
-		User    string `yaml:"user"`
-		SshPort int    `yaml:"ssh_port"`
-	} `yaml:"global"`
+		User    string `json:"user"`
+		SshPort int    `json:"ssh_port"`
+	} `json:"global"`
 
 	ServerConfig struct {
-		Fe map[string]string `yaml:"fe"`
-		Be map[string]string `yaml:"be"`
-	} `yaml:"server_configs"`
+		Fe map[string]string `json:"fe"`
+		Be map[string]string `json:"be"`
+	} `json:"server_configs"`
 
 	FeServers []struct {
-		Host             string            `yaml:"host"`
-		SshPort          int               `yaml:"ssh_port"`
-		HttpPort         int               `yaml:"http_port"`
-		RpcPort          int               `yaml:"rpc_port"`
-		QueryPort        int               `yaml:"query_port"`
-		EditLogPort      int               `yaml:"edit_log_port"`
-		DeployDir        string            `yaml:"deploy_dir"`
-		MetaDir          string            `yaml:"meta_dir"`
-		LogDir           string            `yaml:"log_dir"`
-		PriorityNetworks string            `yaml:"priority_networks"`
-		Config           map[string]string `yaml:"config"`
-	} `yaml:"fe_servers"`
+		Host             string            `json:"host"`
+		SshPort          int               `json:"ssh_port"`
+		HttpPort         int               `json:"http_port"`
+		RpcPort          int               `json:"rpc_port"`
+		QueryPort        int               `json:"query_port"`
+		EditLogPort      int               `json:"edit_log_port"`
+		DeployDir        string            `json:"deploy_dir"`
+		MetaDir          string            `json:"meta_dir"`
+		LogDir           string            `json:"log_dir"`
+		PriorityNetworks string            `json:"priority_networks"`
+		Config           map[string]string `json:"config"`
+	} `json:"fe_servers"`
 
 	BeServers []struct {
-		Host                 string            `yaml:"host"`
-		SshPort              int               `yaml:"ssh_port"`
-		BePort               int               `yaml:"be_port"`
-		WebServerPort        int               `yaml:"webserver_port"`
-		HeartbeatServicePort int               `yaml:"heartbeat_service_port"`
-		BrpcPort             int               `yaml:"brpc_port"`
-		DeployDir            string            `yaml:"deploy_dir"`
-		StorageDir           string            `yaml:"storage_dir"`
-		LogDir               string            `yaml:"log_dir"`
-		PriorityNetworks     string            `yaml:"priority_networks"`
-		Config               map[string]string `yaml:"config"`
-	} `yaml:"be_servers"`
+		Host                 string            `json:"host"`
+		SshPort              int               `json:"ssh_port"`
+		BePort               int               `json:"be_port"`
+		WebServerPort        int               `json:"webserver_port"`
+		HeartbeatServicePort int               `json:"heartbeat_service_port"`
+		BrpcPort             int               `json:"brpc_port"`
+		DeployDir            string            `json:"deploy_dir"`
+		StorageDir           string            `json:"storage_dir"`
+		LogDir               string            `json:"log_dir"`
+		PriorityNetworks     string            `json:"priority_networks"`
+		Config               map[string]string `json:"config"`
+	} `json:"be_servers"`
 
 	PrometheusServer struct {
-		Host      string `yaml:"host"`
-		SshPort   int    `yaml:"ssh_port"`
-		HttpPort  int    `yaml:"http_port"`
-		DeployDir string `yaml:"deploy_dir"`
-		DataDir   string `yaml:"data_dir"`
-		LogDir    string `yaml:"log_dir"`
-	} `yaml:"prometheus_servers"`
+		Host      string `json:"host"`
+		SshPort   int    `json:"ssh_port"`
+		HttpPort  int    `json:"http_port"`
+		DeployDir string `json:"deploy_dir"`
+		DataDir   string `json:"data_dir"`
+		LogDir    string `json:"log_dir"`
+	} `json:"prometheus_servers"`
 
 	GrafanaServer struct {
-		Host      string `yaml:"host"`
-		SshPort   int    `yaml:"ssh_port"`
-		HttpPort  int    `yaml:"http_port"`
-		DeployDir string `yaml:"deploy_dir"`
-	} `yaml:"grafana_servers"`
+		Host      string `json:"host"`
+		SshPort   int    `json:"ssh_port"`
+		HttpPort  int    `json:"http_port"`
+		DeployDir string `json:"deploy_dir"`
+	} `json:"grafana_servers"`
 
 	AlertManagerServer struct {
-		Host        string `yaml:"host"`
-		SshPort     int    `yaml:"ssh_port"`
-		WebPort     int    `yaml:"web_port"`
-		ClusterPort int    `yaml:"cluster_port"`
-		DeployDir   string `yaml:"deploy_dir"`
-		DataDir     string `yaml:"data_dir"`
-		LogDir      string `yaml:"log_dir"`
-	} `yaml:"alertmanager_servers"`
+		Host        string `json:"host"`
+		SshPort     int    `json:"ssh_port"`
+		WebPort     int    `json:"web_port"`
+		ClusterPort int    `json:"cluster_port"`
+		DeployDir   string `json:"deploy_dir"`
+		DataDir     string `json:"data_dir"`
+		LogDir      string `json:"log_dir"`
+	} `json:"alertmanager_servers"`
 }
 
 func (rr *RepoStruct) getRepo() *RepoStruct {
 
-	repoFile, err := ioutil.ReadFile("repo.yaml")
+	repoFile, err := os.ReadFile("repo.json")
 	if err != nil {
 		panic(err)
 	}
 
-	err = yaml.Unmarshal(repoFile, rr)
+	err = json.Unmarshal(repoFile, rr)
 	if err != nil {
 		panic(err)
 	}
@@ -138,12 +136,12 @@ func GetRepo() {
 
 func (cc *ConfStruct) GetConf(fileName string) *ConfStruct {
 
-	yamlFile, err := ioutil.ReadFile(fileName)
+	jsonFile, err := os.ReadFile(fileName)
 	if err != nil {
 		panic(err)
 	}
 
-	err = yaml.Unmarshal(yamlFile, cc)
+	err = json.Unmarshal(jsonFile, cc)
 	if err != nil {
 		panic(err)
 	}
@@ -174,9 +172,9 @@ func InitConf(clusterName string, fileName string) {
 	GJdbcPasswd = ""
 	GJdbcDb = ""
 
-	// parse config yaml file
+	// parse config json file
 	if fileName == "" {
-		GYamlConf = confS.GetConf(GWriteBackMetaPath + "/meta.yaml")
+		GYamlConf = confS.GetConf(GWriteBackMetaPath + "/meta.json")
 	} else {
 		GYamlConf = confS.GetConf(fileName)
 	}
@@ -194,7 +192,7 @@ func AppendConf(clusterName string) {
 	if GSRCtlRoot == "" {
 		GSRCtlRoot = fmt.Sprintf("%s/.stargo", osUser.HomeDir)
 	}
-	metaFile = fmt.Sprintf("%s/cluster/%s/meta.yaml", GSRCtlRoot, clusterName)
+	metaFile = fmt.Sprintf("%s/cluster/%s/meta.json", GSRCtlRoot, clusterName)
 
 	GYamlConfAppend = confS.GetConf(metaFile)
 
@@ -205,7 +203,7 @@ func WriteBackMeta(cc *ConfStruct, metaFilePath string) {
 	var infoMess string
 	var metaFileName string
 	// check the metaFile exist, if the file doesn't exist, create a new one.
-	metaFileName = metaFilePath + "/meta.yaml"
+	metaFileName = metaFilePath + "/meta.json"
 	_ = os.MkdirAll(metaFilePath, 0751)
 	_, err := os.Create(metaFileName)
 	if err != nil {
@@ -235,13 +233,13 @@ func WriteBackMeta(cc *ConfStruct, metaFilePath string) {
 	cc.ClusterInfo.MetaPath = GWriteBackMetaPath
 	cc.ClusterInfo.PrivateKey = GSshKeyRsa
 
-	yamlStr, err := yaml.Marshal(cc)
+	jsonStr, err := json.MarshalIndent(cc, "", "  ")
 	if err != nil {
-		infoMess = fmt.Sprintf("Error in marshalling yaml structure.")
+		infoMess = fmt.Sprintf("Error in marshalling json structure.")
 		utl.Log("ERROR", infoMess)
 	}
 
-	_, err = metaF.WriteString(string(yamlStr))
+	_, err = metaF.WriteString(string(jsonStr))
 	if err != nil {
 		infoMess = fmt.Sprintf("Error in writing back to meta file [fileName = %s]", metaFileName)
 		utl.Log("ERROR", infoMess)

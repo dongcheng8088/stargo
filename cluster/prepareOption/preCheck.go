@@ -628,7 +628,7 @@ func openFile(sshHost string, sshPort int) (string, string) {
 
 func TestPreCheck() {
 
-    module.InitConf("sr-c1", "sr-c1.yaml")
+    module.InitConf("sr-c1", "sr-c1.json")
     module.SetGlobalVar("GSRVersion", "v2.2.0")
 
     PreCheckSR()

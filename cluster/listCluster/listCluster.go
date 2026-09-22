@@ -27,7 +27,7 @@ func ListCluster() {
 
     for _, info := range dir {
         clusterName = info.Name()
-        metaFile = fmt.Sprintf("%s/cluster/%s/meta.yaml", module.GSRCtlRoot, clusterName)
+        metaFile = fmt.Sprintf("%s/cluster/%s/meta.json", module.GSRCtlRoot, clusterName)
 
         module.InitConf(clusterName, metaFile)
         fmt.Printf("%-15s  %-10s  %-10s  %-25s  %-60s  %-50s\n", clusterName,

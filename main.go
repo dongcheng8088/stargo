@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	// sr-ctl-cluster deploy    sr-c1   v2.0.1   /tmp/sr-c1.yaml
+	// sr-ctl-cluster deploy    sr-c1   v2.0.1   /tmp/sr-c1.json
 	// sr-ctl-cluster start     sr-c1
 	// sr-ctl-cluster stop      sr-c1
 	// sr-ctl-cluster display   sr-c1
@@ -32,7 +32,7 @@ func main() {
 	//      list，destroy，upgrade,downgrade,scale-out, scale-in, import
 	// 参数3：集群名称，可选值：sr-c1, sr-c2, ...
 	// 参数4：集群版本，就是已部署的集群是StarRocks的哪个版本，例如：v2.0.1, v2.0.2, ...
-	// 参数5：元配置文件名称，可以是决定路径，也可以是相对路径，例如：/tmp/sr-c1.yaml, sr-c2.yaml, ...
+	// 参数5：元配置文件名称，可以是决定路径，也可以是相对路径，例如：/tmp/sr-c1.json, sr-c2.json, ...
 
 	if len(os.Args) < 2 {
 		utl.Log("ERROR", "参数不足，第一个参数可以是playground、checkport或cluster命令。")

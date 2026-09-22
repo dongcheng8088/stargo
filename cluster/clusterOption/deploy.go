@@ -11,7 +11,7 @@ import (
 )
 
 
-// sr-ctl-cluster deploy sr-c1 v2.0.1 /tmp/sr-c1.yaml
+// sr-ctl-cluster deploy sr-c1 v2.0.1 /tmp/sr-c1.json
 
 func Deploy(clusterName string, clusterVersion string, metaFile string) {
 
