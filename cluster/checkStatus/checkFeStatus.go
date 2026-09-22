@@ -62,63 +62,7 @@ func CheckFePortStatus(feId int) (checkPortRes bool, err error) {
 	}
 
 	return false, err
-
 }
-
-/*
-func GetFeStatJDBC(feId int) (feStat FeStatusStruct, err error) {
-
-    var infoMess string
-    var tmpFeStat FeStatusStruct
-    //GJdbcUser = "root"
-    //GJdbcPasswd = ""
-    //GJdbcDb = ""
-    queryCMD := "show frontends"
-    tmpFeHost := module.GYamlConf.FeServers[feId].Host
-    tmpQueryPort := module.GYamlConf.FeServers[feId].QueryPort
-
-    rows, err := utl.RunSQL(module.GJdbcUser, module.GJdbcPasswd, tmpFeHost, tmpQueryPort, module.GJdbcDb, queryCMD)
-    if err != nil{
-        infoMess = fmt.Sprintf("Error in run sql when check fe status: [FeHost = %s, error = %v]", tmpFeHost, err)
-        utl.Log("DEBUG", infoMess)
-        return feStat, err
-    }
-
-    for rows.Next(){
-        err = rows.Scan(  &tmpFeStat.FeName,
-                          &tmpFeStat.FeIp,
-                          &tmpFeStat.FeEditLogPort,
-                          &tmpFeStat.FeHttpPort,
-                          &tmpFeStat.FeQueryPort,
-                          &tmpFeStat.FeRpcPort,
-                          &tmpFeStat.FeRole,
-                          &tmpFeStat.FeIsMaster,
-                          &tmpFeStat.FeClusterId,
-                          &tmpFeStat.FeJoin,
-                          &tmpFeStat.FeAlive,
-                          &tmpFeStat.FeReplayedJournalId,
-                          &tmpFeStat.FeLastHeartbeat,
-                          &tmpFeStat.FeIsHelper,
-                          &tmpFeStat.FeErrMsg,
-                          &tmpFeStat.FeStartTime,
-                          &tmpFeStat.FeVersion)
-        if err != nil {
-            infoMess = fmt.Sprintf("Error in scan sql result [FeHost = %s, error = %v]", tmpFeHost, err)
-            utl.Log("DEBUG", infoMess)
-            return feStat, err
-        }
-
-        if string(tmpFeStat.FeIp) == tmpFeHost && tmpFeStat.FeQueryPort == tmpQueryPort {
-            feStat = tmpFeStat
-            //GFeStatusArr[feId] = feStat
-            return feStat, nil
-        }
-
-    }
-
-    return feStat, err
-}
-*/
 
 func GetFeStatJDBC(feId int) (feStat map[string]string, err error) {
 
@@ -223,8 +167,6 @@ func CheckFeStatus(feId int, user string, keyRsa string, sshHost string, sshPort
 	err = errors.New(infoMess)
 	return feStat, err
     }
-
-
 
     // check fe status by jdbc (from the master fe node)
     //RunSQL(userName string, password string, ip string, port int, dbName string, sqlStat string)(rows *sql.Rows, err error)

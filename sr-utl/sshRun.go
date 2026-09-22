@@ -2,9 +2,10 @@ package utl
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path"
+	"strings"
 	"sync"
 
 	"github.com/pkg/sftp"
@@ -15,380 +16,259 @@ import (
 var warnInsecureHostKeyOnce sync.Once
 
 func NewConfig(keyFile string, user string) (config *ssh.ClientConfig, err error) {
-
-	var errmess string
-
-	key, err := ioutil.ReadFile(keyFile)
-	if err != nil {
-		errmess = fmt.Sprint("unable to read private key: %v", err)
-		Log("ERROR", errmess)
-		return nil, err
+	key, err := os.ReadFile(keyFile)
+	if err == nil {
+		signer, err := ssh.ParsePrivateKey(key)
+		if err == nil {
+			config = &ssh.ClientConfig{
+				User: user,
+				Auth: []ssh.AuthMethod{
+					ssh.PublicKeys(signer),
+				},
+				// TODO: 建议改为基于 ~/.ssh/known_hosts 的主机密钥校验
+				// （golang.org/x/crypto/ssh/knownhosts），当前禁用主机密钥校验存在中间人攻击风险。
+				HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+			}
+			warnInsecureHostKeyOnce.Do(func() {
+				Log("WARN", "SSH host key verification is disabled (InsecureIgnoreHostKey), the connection is vulnerable to man-in-the-middle attacks.")
+			})
+			return config, nil
+		}
 	}
-
-	signer, err := ssh.ParsePrivateKey(key)
-	if err != nil {
-		errmess = fmt.Sprint("unable to parse private key: %v", err)
-		Log("ERROR", errmess)
-		return nil, err
-	}
-
-	config = &ssh.ClientConfig{
-		User: user,
-		Auth: []ssh.AuthMethod{
-			ssh.PublicKeys(signer),
-		},
-		// TODO: 建议改为基于 ~/.ssh/known_hosts 的主机密钥校验
-		// （golang.org/x/crypto/ssh/knownhosts），当前禁用主机密钥校验存在中间人攻击风险。
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-	}
-
-	warnInsecureHostKeyOnce.Do(func() {
-		Log("WARN", "SSH host key verification is disabled (InsecureIgnoreHostKey), the connection is vulnerable to man-in-the-middle attacks.")
-	})
-
-	return config, nil
-
+	return nil, err
 }
 
 func sshRun(config *ssh.ClientConfig, host string, port int, command string) (outPut []byte, err error) {
-
-	var errmess string
-	var infoMess string
-	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", host, port), config)
+	client, err := ssh.Dial(
+		"tcp",
+		fmt.Sprintf("%s:%d", host, port),
+		config)
 	if err != nil {
-		errmess = fmt.Sprintf("unable to connect: %s error %v", host, err)
-		Log("ERROR", errmess)
 		return nil, err
 	}
 	defer client.Close()
 
 	session, err := client.NewSession()
 	if err != nil {
-		errmess = fmt.Sprint("ssh new session error %v", err)
-		Log("ERROR", errmess)
 		return nil, err
 	}
 	defer session.Close()
 
 	outPut, err = session.CombinedOutput(command)
 	if err != nil {
-		if v, ok := err.(*ssh.ExitError); ok {
-			errmess = v.Msg()
-		}
+		Log("DEBUG", fmt.Sprintf("on [%s:%d] run cmd %s failed: %v, output: %s", host, port, command, err, string(outPut)))
+		return outPut, err
 	}
 
-	infoMess = fmt.Sprintf(`ssh run: 
-                                        host = %s
-                                        cmd = %s
-                                        error = %v
-                                        result = %v`, host, command, errmess, string(outPut))
-	Log("DEBUG", infoMess)
-
-	return outPut, err
+	Log("DEBUG", fmt.Sprintf("on [%s:%d] run cmd %s result: %s", host, port, command, string(outPut)))
+	return outPut, nil
 }
 
 func SshRun(user string, keyFile string, host string, port int, command string) (outPut []byte, err error) {
+	var innerError error
 
-	var infoMess string
-
-	sshConfig, err := NewConfig(keyFile, user)
-	if err != nil {
-		infoMess = fmt.Sprintf("Failed to get the ssh config when run command [user = %s, host = %s, port = %d, cmd = %s], error = %v", user, host, port, command, err)
-		Log("ERROR", infoMess)
+	sshConfig, innerError := NewConfig(keyFile, user)
+	if innerError != nil {
+		err = fmt.Errorf("Failed to get the ssh config when run command [user = %s, host = %s, port = %d, cmd = %s], error = %v",
+			user, host, port, command, innerError)
 		return nil, err
 	}
 
-	output, err := sshRun(sshConfig, host, port, command)
-	if err != nil {
-		infoMess = fmt.Sprintf("Failed to run command. [host = %s, cmd = %s, error = %v]", host, command, err)
-		Log("DEBUG", infoMess)
+	output, innerError := sshRun(sshConfig, host, port, command)
+	if innerError != nil {
+		err = fmt.Errorf("Failed to run command. [host = %s, cmd = %s, error = %v]",
+			host, command, innerError)
+		return nil, err
 	}
-	return output, err
 
+	return output, nil
 }
 
-func sftpConnect(config *ssh.ClientConfig, host string, port int) (sfpClient *sftp.Client, err error) {
-
-	var infoMess string
+// sftpConnect 建立 SSH 连接并返回 SFTP 客户端。
+// 当 sftp.NewClient 失败时，会关闭已建立的 sshClient，避免连接泄漏。
+func sftpConnect(config *ssh.ClientConfig, host string, port int) (sftpClient *sftp.Client, err error) {
 	addr := fmt.Sprintf("%s:%d", host, port)
-
 	sshClient, err := ssh.Dial("tcp", addr, config)
 	if err != nil {
-		infoMess = fmt.Sprintf("Error in dail %s, %s", addr, config)
-		Log("ERROR", infoMess)
 		return nil, err
 	}
-
-	sftpClient, err := sftp.NewClient(sshClient)
+	sftpClient, err = sftp.NewClient(sshClient)
 	if err != nil {
-		infoMess = fmt.Sprintf("Error in get sftp client")
-		Log("ERROR", infoMess)
+		sshClient.Close()
 		return nil, err
 	}
-
 	return sftpClient, nil
-
 }
 
 func uploadFile(sftpClient *sftp.Client, localFileName string, remoteFileName string) (err error) {
-
-	var infoMess string
-
 	srcFile, err := os.Open(localFileName)
 	if err != nil {
-		infoMess = fmt.Sprintf("Error in open file %s", localFileName)
-		Log("ERROR", infoMess)
 		return err
 	}
 	defer srcFile.Close()
 
 	dstFile, err := sftpClient.Create(remoteFileName)
 	if err != nil {
-		infoMess = fmt.Sprintf("sftpClient.Create error : %s, error = %v", remoteFileName, err)
-		Log("ERROR", infoMess)
 		return err
 	}
 	defer dstFile.Close()
 
-	ff, err := ioutil.ReadAll(srcFile)
+	_, err = io.Copy(dstFile, srcFile)
 	if err != nil {
-		infoMess = fmt.Sprintf("ReadAll error : %s", localFileName)
-		Log("ERROR", infoMess)
 		return err
 	}
 
-	dstFile.Write(ff)
-	//infoMess = localFileName + " copy file to remote server finished!"
-	//Log("DEBUG", infoMess)
-	// Chmod remoteFile
 	fileStat, err := os.Stat(localFileName)
 	if err != nil {
-		infoMess = fmt.Sprintf("Error in get file stat when upload file: [sourceFile = %s  targetFile = %s]", localFileName, remoteFileName)
-		Log("ERROR", infoMess)
 		return err
 	}
 
 	err = sftpClient.Chmod(remoteFileName, fileStat.Mode())
-	if err != nil {
-		infoMess = fmt.Sprintf("Error in chmod file stat when upload file: [sourceFile = %s  targetFile = %s]", localFileName, remoteFileName)
-		Log("ERROR", infoMess)
-		return err
-	}
-	//infoMess = fmt.Sprintf("chmod file [%s] to %s", remoteFileName, fileStat.Mode())
-	//Log("DEBUG", infoMess)
-	//Log("INFO", infoMess)
 	return err
 }
 
 func uploadDirectory(sftpClient *sftp.Client, localPath string, remotePath string) (err error) {
-
-	var infoMess string
-
-	localFiles, err := ioutil.ReadDir(localPath)
-	if err != nil {
-		infoMess = "Read dir list fail."
-		Log("ERROR", infoMess)
-		return err
-	}
-
-	for _, backupDir := range localFiles {
-
-		localFilePath := path.Join(localPath, backupDir.Name())
-		remoteFilePath := path.Join(remotePath, backupDir.Name())
-
-		if backupDir.IsDir() {
-			sftpClient.Mkdir(remoteFilePath)
-			err = uploadDirectory(sftpClient, localFilePath, remoteFilePath)
-			if err != nil {
-				infoMess = fmt.Sprintf("Error in upload dir %s\t%s\t%s", sftpClient, localFilePath, remoteFilePath)
-				Log("ERROR", infoMess)
-				return err
+	localFiles, err := os.ReadDir(localPath)
+	if err == nil {
+		for _, backupDir := range localFiles {
+			localFilePath := path.Join(localPath, backupDir.Name())
+			remoteFilePath := path.Join(remotePath, backupDir.Name())
+			if backupDir.IsDir() {
+				// Mkdir 在目录已存在时会返回错误，此时应继续递归上传，而非中断
+				mkdirErr := sftpClient.Mkdir(remoteFilePath)
+				if mkdirErr != nil && !os.IsExist(mkdirErr) {
+					err = mkdirErr
+					break
+				}
+				err = uploadDirectory(sftpClient, localFilePath, remoteFilePath)
+			} else {
+				localFileName := path.Join(localPath, backupDir.Name())
+				remoteFileName := path.Join(remotePath, backupDir.Name())
+				err = uploadFile(sftpClient, localFileName, remoteFileName)
 			}
-		} else {
-			localFileName := path.Join(localPath, backupDir.Name())
-			remoteFileName := path.Join(remotePath, backupDir.Name())
-			err = uploadFile(sftpClient, localFileName, remoteFileName)
 			if err != nil {
-				infoMess = fmt.Sprintf("Error in upload file %s\t%s\t%s", sftpClient, path.Join(localPath, backupDir.Name()), remotePath)
-				Log("ERROR", infoMess)
-				return err
+				break
 			}
 		}
-
 	}
-
-	//infoMess = localPath + " copy directory to remote server finished!"
-	//Log("INFO", infoMess)
 	return err
 }
 
-func UploadFile(user string, keyFile string, host string, port int, sourceFile string, targetFile string) {
-
-	var infoMess string
-
-	sshConfig, err := NewConfig(keyFile, user)
-	if err != nil {
-		infoMess = fmt.Sprintf("Error in upload file, fail to get ssh config [keyfile = %s, user = %s]", keyFile, user)
-		Log("ERROR", infoMess)
-		panic(err)
+func UploadFile(user string, keyFile string, host string, port int, sourceFile string, targetFile string) (err error) {
+	sshConfig, innerError := NewConfig(keyFile, user)
+	if innerError != nil {
+		err = fmt.Errorf("Failed to new config [keyfile = %s, user = %s]: %s",
+			keyFile, user, innerError.Error())
+		return err
 	}
 
-	sftpClient, err := sftpConnect(sshConfig, host, port)
-	if err != nil {
-		infoMess = fmt.Sprintf("Error in upload file, fail to get sftp client [keyfile = %s, user = %s, host = %s, port = %d]", keyFile, user, host, port)
-		Log("ERROR", infoMess)
-		panic(err)
+	sftpClient, innerError := sftpConnect(sshConfig, host, port)
+	if innerError != nil {
+		err = fmt.Errorf("Failed to connect sftp client [keyfile = %s, user = %s, host = %s, port = %d]: %s",
+			keyFile, user, host, port, innerError.Error())
+		return err
+	}
+	defer sftpClient.Close()
+
+	innerError = uploadFile(sftpClient, sourceFile, targetFile)
+	if innerError != nil {
+		err = fmt.Errorf("Failed to upload file [user = %s, keyFile = %s, host = %s, port = %d, sourceFile = %s, targetFile = %s]: %s",
+			user, keyFile, host, port, sourceFile, targetFile, innerError.Error())
+		return err
 	}
 
-	err = uploadFile(sftpClient, sourceFile, targetFile)
-	if err != nil {
-		infoMess = fmt.Sprintf("Error in upload file [user = %s, keyFile = %s, host = %s, port = %d, sourceFile = %s, targetFile = %s]", user, keyFile, host, port, sourceFile, targetFile)
-		Log("ERROR", infoMess)
-		panic(err)
-	}
-
+	return nil
 }
 
-func UploadDir(user string, keyFile string, host string, port int, sourceDir string, targetDir string) {
+func UploadDir(user string, keyFile string, host string, port int, sourceDir string, targetDir string) (err error) {
+	var innerError error
 
-	var infoMess string
-	var err error
-	// check the folder exist
-	cmd := fmt.Sprintf("ls %s", targetDir)
-	_, err = SshRun(user, keyFile, host, port, cmd)
-	if err != nil {
-		infoMess = fmt.Sprintf("The target dir [%s] doesn't exist on [%s:%d], create a new one", targetDir, host, port)
-		Log("DEBUG", infoMess)
-		cmd = fmt.Sprintf("mkdir -p %s", targetDir)
-		_, err := SshRun(user, keyFile, host, port, cmd)
-		if err != nil {
-			infoMess = fmt.Sprintf("Error in create folder [%s] on [%s:%d]", targetDir, host, port)
-			Log("ERROR", infoMess)
-			panic(err)
-		}
-		infoMess = fmt.Sprintf("Create folder [%s] on [%s:%d]", targetDir, host, port)
-		Log("DEBUG", infoMess)
-	}
-
-	sshConfig, err := NewConfig(keyFile, user)
-	if err != nil {
-		infoMess = fmt.Sprintf(`Error in upload dir, failed to get the ssh config :user = %s, 
-                                        keyFile = %s
-                                        host = %s
-                                        port = %d
-                                        sourceDir = %s
-                                        targetDir = %s
-                                        error = %v`, user, keyFile, host, port, sourceDir, targetDir, err)
-	}
-	sftpClient, err := sftpConnect(sshConfig, host, port)
-	if err != nil {
-		infoMess = fmt.Sprintf(`Error in upload dir[sftp client]: user = %s
-                                        keyFile = %s
-                                        host = %s
-                                        port = %d
-                                        sourceDir = %s
-                                        targetDir = %s
-                                        error = %v`, user, keyFile, host, port, sourceDir, targetDir, err)
+	// 确保目标目录存在（mkdir -p 是幂等的，目录已存在时无操作）
+	cmd := fmt.Sprintf("mkdir -p %s", shellQuote(targetDir))
+	_, innerError = SshRun(user, keyFile, host, port, cmd)
+	if innerError != nil {
+		infoMess := fmt.Sprintf("Error in create folder [%s] on [%s:%d]", targetDir, host, port)
 		Log("ERROR", infoMess)
-		panic(err)
+		err = fmt.Errorf("%s: %v", infoMess, innerError)
+		return err
 	}
 
-	err = uploadDirectory(sftpClient, sourceDir, targetDir)
-	if err != nil {
-		infoMess = fmt.Sprintf(`Error in upload dir[upload dir]: user = %s
-                                        keyFile = %s
-                                        host = %s
-                                        port = %d
-                                        sourceDir = %s
-                                        targetDir = %s
-                                        error = %v`, user, keyFile, host, port, sourceDir, targetDir, err)
-		Log("ERROR", infoMess)
-		panic(err)
+	sshConfig, innerError := NewConfig(keyFile, user)
+	if innerError != nil {
+		err = fmt.Errorf("Failed to new config [keyfile = %s, user = %s]: %s",
+			keyFile, user, innerError.Error())
+		return err
 	}
 
+	sftpClient, innerError := sftpConnect(sshConfig, host, port)
+	if innerError != nil {
+		err = fmt.Errorf("Error in sftpConnect: user = %s, keyFile = %s, host = %s, port = %d, sourceDir = %s, targetDir = %s, error = %v",
+			user, keyFile, host, port, sourceDir, targetDir, innerError)
+		return err
+	}
+	defer sftpClient.Close()
+
+	innerError = uploadDirectory(sftpClient, sourceDir, targetDir)
+	if innerError != nil {
+		err = fmt.Errorf("Error in uploadDirectory: user = %s, keyFile = %s, host = %s, port = %d, sourceDir = %s, targetDir = %s, error = %v",
+			user, keyFile, host, port, sourceDir, targetDir, innerError)
+		return err
+	}
+
+	return nil
 }
 
 func RenameDir(user string, keyFile string, host string, port int, sourceDir string, targetDir string) (err error) {
+	var innerError error
 
-	var infoMess string
-
-	cmd := fmt.Sprintf("ls %s", sourceDir)
-	_, err = SshRun(user, keyFile, host, port, cmd)
-
-	if err != nil {
-		infoMess = fmt.Sprintf("The source dir [%s] doesn't exist on [%s:%d], create a new one", sourceDir, host, port)
-		Log("ERROR", infoMess)
+	cmd := fmt.Sprintf("ls -- %s", shellQuote(sourceDir))
+	_, innerError = SshRun(user, keyFile, host, port, cmd)
+	if innerError != nil {
+		err = fmt.Errorf("The source dir [%s] on [%s:%d] doesn't exist", sourceDir, host, port)
 		return err
 	}
 
-	sshConfig, err := NewConfig(keyFile, user)
-	if err != nil {
-		infoMess = fmt.Sprintf("Error in rename dir, failed to get the ssh config. [host = %s, sourceDir = %s, targetDir = %s, err = %v]", host, sourceDir, targetDir, err)
-		Log("ERROR", infoMess)
+	sshConfig, innerError := NewConfig(keyFile, user)
+	if innerError != nil {
+		err = fmt.Errorf("Failed to new config [keyfile = %s, user = %s]: %s",
+			keyFile, user, innerError.Error())
 		return err
 	}
 
-	sftpClient, err := sftpConnect(sshConfig, host, port)
-	if err != nil {
-		infoMess = fmt.Sprintf("Error in rename dir when create sftp client.[host = %s, sourceDir = %s, targetDir = %s, error = %v", host, sourceDir, targetDir, err)
-		Log("ERROR", infoMess)
+	sftpClient, innerError := sftpConnect(sshConfig, host, port)
+	if innerError != nil {
+		err = fmt.Errorf("Failed to connect sftp client [host = %s, sourceDir = %s, targetDir = %s]: %s",
+			host, sourceDir, targetDir, innerError.Error())
 		return err
 	}
-	err = sftpClient.Rename(sourceDir, targetDir)
-	if err != nil {
-		infoMess = fmt.Sprintf("Error in rename dir.[host = %s, sourceDir = %s, targetDir = %s, error = %v", host, sourceDir, targetDir, err)
-		Log("ERROR", infoMess)
+	defer sftpClient.Close()
+
+	innerError = sftpClient.Rename(sourceDir, targetDir)
+	if innerError != nil {
+		err = fmt.Errorf("Failed to rename dir [host = %s, sourceDir = %s, targetDir = %s]: %s",
+			host, sourceDir, targetDir, innerError.Error())
 		return err
 	}
 
 	return nil
-
 }
 
 func RemoveDir(user string, keyFile string, host string, port int, dirName string) (err error) {
+	var innerError error
 
-	var infoMess string
-	cmd := fmt.Sprintf("ls %s", dirName)
-	_, err = SshRun(user, keyFile, host, port, cmd)
-
-	if err != nil {
-		infoMess = fmt.Sprintf("The dir [%s] doesn't exist on [%s:%d]", dirName, host, port)
-		Log("DEBUG", infoMess)
-	}
-
-	sshConfig, err := NewConfig(keyFile, user)
-	if err != nil {
-		infoMess = fmt.Sprintf("Error in remove dir, failed to get the ssh config. [host = %s, dirName, err = %v]", host, dirName, err)
-		Log("ERROR", infoMess)
-		return err
-	}
-
-	sftpClient, err := sftpConnect(sshConfig, host, port)
-	if err != nil {
-		infoMess = fmt.Sprintf("Error in remove dir when create sftp client.[host = %s, dirName = %s, error = %v", host, dirName, err)
-		Log("ERROR", infoMess)
-		return err
-	}
-
-	err = sftpClient.RemoveDirectory(dirName)
-
-	if err != nil {
-		infoMess = fmt.Sprintf("Error in remove dir.[host = %s, dirName = %s, error = %v", host, dirName, err)
-		Log("ERROR", infoMess)
+	// 使用 rm -rf 可删除非空目录，且对不存在的目录返回成功（幂等）
+	cmd := fmt.Sprintf("rm -rf %s", shellQuote(dirName))
+	_, innerError = SshRun(user, keyFile, host, port, cmd)
+	if innerError != nil {
+		err = fmt.Errorf("Failed to remove directory %s on [%s:%d]: %s", dirName, host, port, innerError.Error())
 		return err
 	}
 
 	return nil
-
 }
 
-func TestDir(dirName string) {
-
-	// check targetDir exist
-	user := "starrocks"
-	keyFile := "/home/sr-dev/.ssh/id_rsa"
-	host := "192.168.88.83"
-	port := 22
-	//dirName := "/opt/starrocks/fe"
-	_ = RemoveDir(user, keyFile, host, port, dirName)
+// shellQuote 将字符串转义为可安全传入 shell 单引号上下文的形式，
+// 防止路径中的特殊字符（空格、分号、引号等）导致命令注入。
+func shellQuote(s string) string {
+	return "'" + strings.ReplaceAll(s, "'", "'\\''") + "'"
 }

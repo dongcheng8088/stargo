@@ -7,18 +7,14 @@ import (
 	"stargo/cluster/clusterOption"
 	"stargo/playground"
 	utl "stargo/sr-utl"
-	//"stargo/cluster/checkStatus"
-	// "stargo/module"
-	//"stargo/cluster/prepareOption"
+	"strconv"
 )
 
 func main() {
-
 	// sr-ctl-cluster deploy    sr-c1   v2.0.1   /tmp/sr-c1.yaml
 	// sr-ctl-cluster start     sr-c1
 	// sr-ctl-cluster stop      sr-c1
 	// sr-ctl-cluster display   sr-c1
-
 	// sr-ctl playground v2.0.1
 
 	var component string
@@ -39,13 +35,41 @@ func main() {
 	// 参数5：元配置文件名称，可以是决定路径，也可以是相对路径，例如：/tmp/sr-c1.yaml, sr-c2.yaml, ...
 
 	if len(os.Args) < 2 {
-		utl.Log("ERROR", "Insufficient arguments")
+		utl.Log("ERROR", "参数不足，第一个参数可以是playground、checkport或cluster命令。")
 		return
 	}
+
 	component = os.Args[1]
 	switch component {
 	case "playground":
 		playground.RunPlayground()
+
+	case "checkport":
+		if len(os.Args) < 3 {
+			utl.Log("ERROR", "程序启动的第一个参数是checkport时，第二个参数必须给出端口号。")
+			return
+		}
+		// 1. 字符串转 uint32
+		u64Val, err := strconv.ParseUint(os.Args[2], 10, 32)
+		if err != nil {
+			utl.Log("ERROR", "传入参数错误，第二个参数端口号必须是有效的无符号整数。")
+			return
+		}
+		portNo := uint32(u64Val)
+		var msg string
+		portUsed, err := utl.IsPortUsedTcpOnly(portNo)
+		if err != nil {
+			msg = fmt.Sprintf("检查端口[%d]是否被占用失败，错误信息：%s", portNo, err.Error())
+			utl.Log("ERROR", msg)
+		} else {
+			if portUsed {
+				msg = fmt.Sprintf("端口[%d]已被占用。", portNo)
+				utl.Log("INFO", msg)
+			} else {
+				msg = fmt.Sprintf("端口[%d]未被占用。", portNo)
+				utl.Log("INFO", msg)
+			}
+		}
 
 	case "cluster":
 		if len(os.Args) < 3 {

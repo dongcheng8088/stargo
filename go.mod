@@ -12,5 +12,6 @@ require (
 require (
 	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/kr/fs v0.1.0 // indirect
+	github.com/shirou/gopsutil/v3 v3.24.5 // indirect
 	golang.org/x/sys v0.46.0 // indirect
 )
