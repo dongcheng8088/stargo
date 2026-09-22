@@ -39,7 +39,7 @@ func InitBeCluster(yamlConf *module.ConfStruct) {
     module.SetFeEntry(feEntryId)
     if err != nil || feEntryId == -1 {
         infoMess = "Error in get the FE entry, pls check FE status."
-	utl.Log("ERROR", infoMess)
+	utl.Logger.Error(infoMess)
 	err = errors.New(infoMess)
 	panic(err)
     }
@@ -54,12 +54,12 @@ func InitBeCluster(yamlConf *module.ConfStruct) {
         tmpBeDeployDir = yamlConf.BeServers[i].DeployDir
 
 	infoMess = fmt.Sprintf("Starting BE node [BeHost = %s HeartbeatServicePort = %d]", tmpSshHost, tmpHeartbeatServicePort)
-        utl.Log("INFO", infoMess)
+        utl.Logger.Info(infoMess)
 
 	for startTimeInd := 0; startTimeInd < 3; startTimeInd++ {
 
 	    infoMess = fmt.Sprintf("The %d time to start [%s]",(startTimeInd + 1), tmpSshHost)
-            utl.Log("DEBUG", infoMess)
+            utl.Logger.Debug(infoMess)
 	    // startBeNode(user string, keyRsa string, sshHost string, sshPort int, heartbeatServicePort int, beDeployDir string) (err error)
 	    err = initBeNode(tmpUser, tmpKeyRsa, tmpSshHost, tmpSshPort, tmpHeartbeatServicePort, tmpBeDeployDir)
 
@@ -70,11 +70,11 @@ func InitBeCluster(yamlConf *module.ConfStruct) {
             beStat, _ = checkStatus.CheckBeStatus(i)
             if beStat["Alive"] == "true" {
                 infoMess = fmt.Sprintf("The BE node start succefully [host = %s, heartbeatServicePort = %d]", tmpSshHost, tmpHeartbeatServicePort)
-                utl.Log("INFO", infoMess)
+                utl.Logger.Info(infoMess)
                 break
             } else {
                 infoMess = fmt.Sprintf("The BE node doesn't start, wait for 10s [BeHost = %s, HeartbeatServicePort = %d, error = %v]", tmpSshHost, tmpHeartbeatServicePort, err)
-                utl.Log("WARN", infoMess)
+                utl.Logger.Warn(infoMess)
             }
         } // FOR-END: 3 time to restart BE node
 
@@ -85,7 +85,7 @@ func InitBeCluster(yamlConf *module.ConfStruct) {
 	beStatusList = beStatusList + "                                        " + fmt.Sprintf("beHost = %-20sbeHeartbeatServicePort = %d\tbeStatus = %v\n", tmpSshHost, tmpHeartbeatServicePort, beStat["Alive"])
     }
     beStatusList = "List all BE status:\n" + beStatusList
-    utl.Log("OUTPUT", beStatusList)
+    utl.Logger.Info(beStatusList)
 }
 
 func initBeNode(user string, keyRsa string, sshHost string, sshPort int, heartbeatServicePort int, beDeployDir string) (err error) {
@@ -97,7 +97,7 @@ func initBeNode(user string, keyRsa string, sshHost string, sshPort int, heartbe
     addBeCMD := fmt.Sprintf("%s/bin/start_be.sh --daemon", beDeployDir)
 
     //infoMess = fmt.Sprintf("Starting BE node [host = %s, heartbeatServicePort = %d]", sshHost, heartbeatServicePort)
-    //utl.Log("INFO", infoMess)
+    //utl.Logger.Info(infoMess)
 
     // alter system add backend "sshHost:heartbeatServicePort"
     sqlUserName := "root"
@@ -116,7 +116,7 @@ func initBeNode(user string, keyRsa string, sshHost string, sshPort int, heartbe
                                         sqlDBName = %s
                                         addFollowerSQL =%s
                                         errMess = %v]`, sqlUserName, sqlPassword, sqlIp, sqlPort, sqlDbName, addBeSQL, err)
-        utl.Log("ERROR", infoMess)
+        utl.Logger.Error(infoMess)
         return err
     }
 
@@ -130,7 +130,7 @@ func initBeNode(user string, keyRsa string, sshHost string, sshPort int, heartbe
                                         sshPort = %d
                                         beDeployDir = %s`,
                 user, keyRsa, sshHost, sshPort, beDeployDir)
-        utl.Log("WARN", infoMess)
+        utl.Logger.Warn(infoMess)
         return err
     }
 

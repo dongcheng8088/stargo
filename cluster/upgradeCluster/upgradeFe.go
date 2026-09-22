@@ -26,7 +26,7 @@ func UpgradeFeCluster() { //(err error){
     feEntryId, err = checkStatus.GetFeEntry(-1)
     if err != nil ||  feEntryId == -1 {
         //infoMess = "All FE nodes are down, please start FE node and display the cluster status again."
-        //utl.Log("WARN", infoMess)
+        //utl.Logger.Warn(infoMess)
         module.SetFeEntry(0)
     } else {
         module.SetFeEntry(feEntryId)
@@ -35,7 +35,7 @@ func UpgradeFeCluster() { //(err error){
 
     for i := 0; i < len(module.GYamlConf.FeServers); i++ {
         infoMess = fmt.Sprintf("Starting upgrade FE node. [feId = %d]", i)
-        utl.Log("OUTPUT", infoMess)
+        utl.Logger.Info(infoMess)
         UpgradeFeNode(i)
     }
 
@@ -79,10 +79,10 @@ func UpgradeFeNode(feId int) {
     err = utl.RenameDir(user, keyRsa, sshHost, sshPort, sourceDir, targetDir)
     if err != nil {
         infoMess = fmt.Sprintf("Error in rename dir when backup FE lib. [host = %s, sourceDir = %s, targetDir = %s]", sshHost, sourceDir, targetDir)
-        utl.Log("ERROR", infoMess)
+        utl.Logger.Error(infoMess)
     } else {
         infoMess = fmt.Sprintf("upgrade FE node - backup FE lib. [host = %s, sourceDir = %s, targetDir = %s]", sshHost, sourceDir, targetDir)
-        utl.Log("INFO", infoMess)
+        utl.Logger.Info(infoMess)
     }
 
 
@@ -92,7 +92,7 @@ func UpgradeFeNode(feId int) {
     targetDir = fmt.Sprintf("%s/lib", feDeployDir)
     utl.UploadDir(user, keyRsa, sshHost, sshPort, sourceDir, targetDir)
     infoMess = fmt.Sprintf("upgrade FE node - upload new FE lib. [host = %s, sourceDir = %s, targetDir = %s]", sshHost, sourceDir, targetDir)
-    utl.Log("INFO", infoMess)
+    utl.Logger.Info(infoMess)
 
 
 
@@ -100,17 +100,17 @@ func UpgradeFeNode(feId int) {
     err = stopCluster.StopFeNode(user, keyRsa, sshHost, sshPort, feDeployDir)
     if err != nil {
         infoMess = fmt.Sprintf("Error in stop FE node when upgrade FE node. [host = %s, feDeployDir = %s]", sshHost, feDeployDir)
-        utl.Log("ERROR", infoMess)
+        utl.Logger.Error(infoMess)
     } else {
         infoMess = fmt.Sprintf("upgrade FE node - stop FE node. [host = %s, feDeployDir = %s]", sshHost, feDeployDir)
-        utl.Log("INFO", infoMess)
+        utl.Logger.Info(infoMess)
     }
 
     // step4. start FE node
     for j := 0; j < 3; j++ {
         startCluster.StartFeNode(user, keyRsa, sshHost, sshPort, feEditLogPort, feDeployDir)
         infoMess = fmt.Sprintf("upgrade FE node - start FE node. [host = %s, feDeployDir = %s]", sshHost, feDeployDir)
-        utl.Log("INFO", infoMess)
+        utl.Logger.Info(infoMess)
 
         feStat, err = checkStatus.CheckFeStatus(feId)
         if feStat["Alive"] == "true" {
@@ -121,16 +121,16 @@ func UpgradeFeNode(feId int) {
 
     if err != nil {
         infoMess = fmt.Sprintf("Error in get the FE status [feId = %d, error = %v]", feId, err)
-        utl.Log("DEBUG", infoMess)
+        utl.Logger.Debug(infoMess)
     } else if feStat["Alive"]  == "false" {
         infoMess = fmt.Sprintf("The FE node upgrade failed. The FE node doesn't work. [feId = %d]\n", feId)
-        utl.Log("ERROR", infoMess)
+        utl.Logger.Error(infoMess)
     } else if ! strings.Contains(feStat["FeVersion"], strings.Replace(module.GSRVersion, "v", "", -1)) {
         infoMess = fmt.Sprintf("The FE node upgrade failed.  [feId = %d, targetVersion = %s, currentVersion = v%s]", feId, module.GSRVersion, feStat["FeVersion"])
-        utl.Log("ERROR", infoMess)
+        utl.Logger.Error(infoMess)
     } else {
         infoMess = fmt.Sprintf("The Be node upgrade successfully. [feId = %d, currentVersion = v%s]", feId, feStat["FeVersion"])
-        utl.Log("OUTPUT", infoMess)
+        utl.Logger.Info(infoMess)
     }
 
 

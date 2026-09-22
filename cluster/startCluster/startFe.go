@@ -38,7 +38,7 @@ func StartFeCluster() {
         tmpFeDeployDir = module.GYamlConf.FeServers[i].DeployDir
 
         infoMess = fmt.Sprintf("Starting FE node [FeHost = %s, EditLogPort = %d]", tmpSshHost, tmpEditLogPort)
-        utl.Log("INFO", infoMess)
+        utl.Logger.Info(infoMess)
 
         // startFeNode(user string, keyRsa string, sshHost string, sshPort int, editLogPort int, feDeployDir string) (err error)
         _ = StartFeNode(tmpUser, tmpKeyRsa, tmpSshHost, tmpSshPort, tmpEditLogPort, tmpFeDeployDir)
@@ -69,12 +69,12 @@ func StartFeNode(user string, keyRsa string, sshHost string, sshPort int, editLo
     // check master node
     startFeCmd = fmt.Sprintf("%s/bin/start_fe.sh --daemon", feDeployDir)
     infoMess = fmt.Sprintf("Run starting FE process [host = %s, editLogPort = %d]", sshHost, editLogPort)
-    utl.Log("DEBUG", infoMess)
+    utl.Logger.Debug(infoMess)
     _, err = utl.SshRun(user, keyRsa, sshHost, sshPort, startFeCmd)
 
     if err != nil {
         infoMess = fmt.Sprintf("Waiting for starting FE node [FeHost = %s]", sshHost)
-        utl.Log("DEBUG", infoMess)
+        utl.Logger.Debug(infoMess)
         return err
     }
     return nil

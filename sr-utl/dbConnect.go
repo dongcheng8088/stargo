@@ -13,7 +13,7 @@ func RunSQL(userName string, password string, ip string, port int, dbName string
     DB, err := sql.Open("mysql", dbPath)
     if err != nil{
         infoMess = fmt.Sprintf("Error in open db [dbPath = %s], error = %v", dbPath, err)
-	Log("ERROR", infoMess)
+	Logger.Error(infoMess)
 	return nil, err
     }
     defer DB.Close()
@@ -22,7 +22,7 @@ func RunSQL(userName string, password string, ip string, port int, dbName string
     err = DB.Ping()
     if err != nil{
         infoMess = fmt.Sprintf("Error in ping db [dbPath = %s], error = %v", dbPath, err)
-	Log("ERROR", infoMess)
+	Logger.Error(infoMess)
 	return nil, err
     }
 
@@ -32,7 +32,7 @@ func RunSQL(userName string, password string, ip string, port int, dbName string
                                         dbPath = %s
                                         SQL = %s
                                         error = %v`, dbPath, sqlStat, err)
-	Log("DEBUG", infoMess)
+	Logger.Debug(infoMess)
 	return nil, err
     }
 

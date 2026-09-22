@@ -34,7 +34,7 @@ func ScaleIn(clusterName string, nodeId string) {
 
     if checkStatus.CheckClusterName(clusterName) {
         infoMess = "Don't find the Cluster " + clusterName 
-        utl.Log("ERROR", infoMess)
+        utl.Logger.Error(infoMess)
         os.Exit(1)
     }
 
@@ -43,7 +43,7 @@ func ScaleIn(clusterName string, nodeId string) {
 
     if err != nil ||  feEntryId == -1 {
         //infoMess = "All FE nodes are down, please start FE node and display the cluster status again."
-        //utl.Log("WARN", infoMess)
+        //utl.Logger.Warn(infoMess)
         module.SetFeEntry(0)
     } else {
         module.SetFeEntry(feEntryId)
@@ -67,7 +67,7 @@ func ScaleIn(clusterName string, nodeId string) {
         err = stopCluster.StopFeNode(user, keyRsa, sshHost, sshPort, feDeployDir)
         if err != nil {
             infoMess = fmt.Sprintf("Error in stop FE node. [nodeId = %s, error = %v]", nodeId, err)
-            utl.Log("ERROR", infoMess)
+            utl.Logger.Error(infoMess)
             os.Exit(1)
         }
 
@@ -78,7 +78,7 @@ func ScaleIn(clusterName string, nodeId string) {
 
         if err != nil {
             infoMess = fmt.Sprintf("Error in scale in FE node. [clusterName = %s, nodeId = %s, error = %s]", clusterName, nodeId, err)
-            utl.Log("ERROR", infoMess) 
+            utl.Logger.Error(infoMess) 
         }
 
 
@@ -96,7 +96,7 @@ func ScaleIn(clusterName string, nodeId string) {
         module.WriteBackMeta(module.GYamlConf, module.GYamlConf.ClusterInfo.MetaPath)
 
         infoMess = fmt.Sprintf("Scale in FE node successfully. [clusterName = %s, nodeId = %s]", clusterName, nodeId)
-        utl.Log("OUTPUT", infoMess)
+        utl.Logger.Info(infoMess)
 
     } else if tmpNodeType == "BE" {
         // stop BE node first
@@ -109,7 +109,7 @@ func ScaleIn(clusterName string, nodeId string) {
 
         if err != nil {
              infoMess = fmt.Sprintf("Error in stop BE node. [nodeId = %s, error = %v]", nodeId, err)
-             utl.Log("ERROR", infoMess)
+             utl.Logger.Error(infoMess)
              os.Exit(1)
         }
 
@@ -122,7 +122,7 @@ func ScaleIn(clusterName string, nodeId string) {
 
         if err != nil {
             infoMess = fmt.Sprintf("Error in scale in BE node. [clusterName = %s, nodeId = %s, error = %s]", clusterName, nodeId, err)
-            utl.Log("ERROR", infoMess)
+            utl.Logger.Error(infoMess)
         }
 
 
@@ -141,11 +141,11 @@ func ScaleIn(clusterName string, nodeId string) {
 
         module.WriteBackMeta(module.GYamlConf, module.GYamlConf.ClusterInfo.MetaPath)
         infoMess = fmt.Sprintf("Scale in BE node successfully. [clusterName = %s, nodeId = %s]", clusterName, nodeId)
-        utl.Log("OUTPUT", infoMess)
+        utl.Logger.Info(infoMess)
 
     } else {
         infoMess = fmt.Sprintf("Error in get Node type. Please check the nodeId. You can use 'sr-ctl-cluster display %s ' to check the node id.[NodeId = %s]", clusterName, nodeId)
-        utl.Log("ERROR", infoMess)
+        utl.Logger.Error(infoMess)
     }
 
 }

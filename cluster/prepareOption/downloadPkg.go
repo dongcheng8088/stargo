@@ -15,11 +15,11 @@ func PrepareSRPkg() {
 	var infoMess string
 
 	infoMess = "Download StarRocks package & jdk ..."
-	utl.Log("OUTPUT", infoMess)
+	utl.Logger.Info(infoMess)
 	DownloadSRPkg()
 
 	infoMess = "Decompress StarRocks pakcage & jdk ..."
-	utl.Log("OUTPUT", infoMess)
+	utl.Logger.Info(infoMess)
 	DecompressSRPkg()
 }
 
@@ -40,7 +40,7 @@ func GetDownloadUrl(srVersion string) (downloadUrl string) {
 	res, err := http.Get(repoUrl)
 	if err != nil {
 		infoMess = fmt.Sprintf("Error in create http get request when download the repo list. [error = %v]", err)
-		utl.Log("ERROR", infoMess)
+		utl.Logger.Error(infoMess)
 		os.Exit(1)
 	}
 	// res 只有在 err == nil 时才非 nil，defer 必须放在 err 检查之后
@@ -49,7 +49,7 @@ func GetDownloadUrl(srVersion string) (downloadUrl string) {
 	robots, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		infoMess = fmt.Sprintf("Error in read body.[error = %v]", err)
-		utl.Log("ERROR", infoMess)
+		utl.Logger.Error(infoMess)
 		os.Exit(1)
 	}
 
@@ -68,7 +68,7 @@ func GetDownloadUrl(srVersion string) (downloadUrl string) {
 
 	if downloadUrl == "" {
 		infoMess = fmt.Sprintf("Error in get version %s package, pls check it again. [DownloadUrl = %s]", srVersion, downloadUrl)
-		utl.Log("ERROR", infoMess)
+		utl.Logger.Error(infoMess)
 		os.Exit(1)
 	}
 
@@ -90,7 +90,7 @@ func DownloadSRPkg() {
 		downloadFile := fmt.Sprintf("starrocks-%s-quickstart.tar.gz", strings.Replace(module.GSRVersion, "v", "", -1))
 		utl.DownloadFile(pkgUrl, module.GDownloadPath, downloadFile)
 		infoMess = fmt.Sprintf("Download done.")
-		utl.Log("OUTPUT", infoMess)
+		utl.Logger.Info(infoMess)
 	}
 }
 
@@ -106,7 +106,7 @@ func DecompressSRPkg() {
 	destFilePath = module.GDownloadPath
 	utl.UnTargz(tarFileName, destFilePath)
 	infoMess = fmt.Sprintf("The tar file %s has been decompressed under %s", tarFileName, destFilePath)
-	utl.Log("INFO", infoMess)
+	utl.Logger.Info(infoMess)
 
 	// Decompress StarRocks Package
 	tarFileName = fmt.Sprintf("%s/StarRocks-%s.tar.gz", module.GDownloadPath, strings.Replace(module.GSRVersion, "v", "", -1))
@@ -115,7 +115,7 @@ func DecompressSRPkg() {
 	destFilePath = module.GDownloadPath
 	utl.UnTargz(tarFileName, destFilePath)
 	infoMess = fmt.Sprintf("The tar file %s has been decompressed under %s", tarFileName, destFilePath)
-	utl.Log("INFO", infoMess)
+	utl.Logger.Info(infoMess)
 
 	// Decompress JDK Package
 	tarFileName = module.GDownloadPath + "/jdk-8u301-linux-x64.tar.gz"
@@ -124,5 +124,5 @@ func DecompressSRPkg() {
 	// destFilePath = module.GSRCtlRoot + "/download"
 	utl.UnTargz(tarFileName, destFilePath)
 	infoMess = fmt.Sprintf("The tar file %s has been decompressed under %s", tarFileName, destFilePath)
-	utl.Log("INFO", infoMess)
+	utl.Logger.Info(infoMess)
 }

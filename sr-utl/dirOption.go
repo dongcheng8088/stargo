@@ -17,12 +17,12 @@ func MkDir(dirPath string) {
         e := os.MkdirAll(dirPath, 0755)
         if e != nil {
             mess = "Error in create folder [" + dirPath + "]"
-            Log("ERROR", mess)
+            Logger.Error(mess)
             panic(e)
         }
     } else {
         mess = "Detect the folder [" + dirPath + "] exists"
-        Log("DEBUG", mess)
+        Logger.Debug(mess)
     }
 }
 
@@ -34,20 +34,20 @@ func CopyFile(sourceFileName string, targetFileName string) (fileByte int64, err
 
     if err != nil {
 	infoMess = fmt.Sprintf("Error in copy file, the source file doesn't exist [sourceFile = %, targetFile = %s]", sourceFileName, targetFileName)
-	Log("ERROR", infoMess)
+	Logger.Error(infoMess)
         return 0, err
     }
 
     if !sourceFileStat.Mode().IsRegular() {
         infoMess = fmt.Sprintf("Error in copy file, the source file isn't a regular file [sourceFile = %s, targetFile = %s]", sourceFileName, targetFileName)
-	Log("ERROR", infoMess)
+	Logger.Error(infoMess)
 	return 0, err
     }
 
     src, err := os.Open(sourceFileName)
     if err != nil {
         infoMess = fmt.Sprintf("Error in copy file, the source file cannot be opened [sourceFile = %s, targetFile = %s]", sourceFileName, targetFileName)
-	Log("ERROR", infoMess)
+	Logger.Error(infoMess)
 	return 0, err
     }
     defer src.Close()
@@ -55,7 +55,7 @@ func CopyFile(sourceFileName string, targetFileName string) (fileByte int64, err
     dest, err := os.Create(targetFileName)
     if err != nil {
         infoMess = fmt.Sprintf("Error in copy file, the target file cannot be created [sourceFile = %s, targetFile = %s]", sourceFileName, targetFileName)
-        Log("ERROR", infoMess)
+        Logger.Error(infoMess)
         return 0, err
     }
     defer dest.Close()
@@ -63,7 +63,7 @@ func CopyFile(sourceFileName string, targetFileName string) (fileByte int64, err
     fileByte, err = io.Copy(dest, src)
     if err != nil {
         infoMess = fmt.Sprintf("Error in copy file [sourceFile = %s, targetFile = %s]", sourceFileName, targetFileName)
-        Log("ERROR", infoMess)
+        Logger.Error(infoMess)
 	return 0, err
     }
 

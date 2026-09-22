@@ -18,11 +18,11 @@ func StopBeNode(user string, keyRsa string, sshHost string, sshPort int, beDeplo
     stopBeCmd = fmt.Sprintf("%s/bin/stop_be.sh", beDeployDir)
  
     infoMess = fmt.Sprintf("Waiting for stoping BE node [BeHost = %s]", sshHost)
-    utl.Log("INFO", infoMess)
+    utl.Logger.Info(infoMess)
     _, err = utl.SshRun(user, keyRsa, sshHost, sshPort, stopBeCmd)
     if err != nil {
         infoMess = fmt.Sprintf("Stop BE failed [BeHost = %s, error = %v]", sshHost, err)
-        utl.Log("DEBUG", infoMess)
+        utl.Logger.Debug(infoMess)
         return err
     }
     return nil
@@ -49,7 +49,7 @@ func StopBeCluster(clusterName string) {
     tmpKeyRsa = module.GSshKeyRsa
 
     infoMess = "Stop cluster " + clusterName
-    utl.Log("OUTPUT", infoMess)
+    utl.Logger.Info(infoMess)
     for i := 0; i < len(module.GYamlConf.BeServers); i++ {
 
         tmpSshHost = module.GYamlConf.BeServers[i].Host
@@ -60,21 +60,21 @@ func StopBeCluster(clusterName string) {
         err = StopBeNode(tmpUser, tmpKeyRsa, tmpSshHost, tmpSshPort, tmpBeDeployDir)
         if err != nil {
             infoMess = fmt.Sprintf("Error in stoping BE node [BeHost = %s, HeartbeatServicePort = %d, error = %v]", tmpSshHost, tmpHeartbeatServicePort, err)
-            utl.Log("DEBUG", infoMess)
+            utl.Logger.Debug(infoMess)
         }
 
         beStat, err = checkStatus.CheckBeStatus(i)
 
         if err != nil {
             infoMess = fmt.Sprintf("Error in get the Be status [BeHost = %s, HeartbeatServicePort = %d, error = %v]", tmpSshHost, tmpHeartbeatServicePort, err)
-            utl.Log("DEBUG", infoMess)
+            utl.Logger.Debug(infoMess)
         }
         if beStat["Alive"] == "false" {
             infoMess = fmt.Sprintf("The BE node stop succefully [BeHost = %s, HeartbeatServicePort = %d]", tmpSshHost, tmpHeartbeatServicePort)
-            utl.Log("INFO", infoMess)
+            utl.Logger.Info(infoMess)
         } else {
             infoMess = fmt.Sprintf("The BE node stop failed [BeHost = %s, HeartbeatServicePort = %d]", tmpSshHost, tmpHeartbeatServicePort)
-            utl.Log("DEBUG", infoMess)
+            utl.Logger.Debug(infoMess)
         }
     }
 

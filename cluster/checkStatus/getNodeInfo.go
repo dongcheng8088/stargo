@@ -33,7 +33,7 @@ func GetNodeType(nodeId string) (nodeType string, nodeInd int) {
     // nodeId 格式为 host:port，缺少冒号分隔的端口时直接返回，避免数组越界
     if len(tmpNodeId) < 2 {
         infoMess = fmt.Sprintf("Invalid node id, expected format is 'host:port'. [nodeId = %s]", nodeId)
-        utl.Log("ERROR", infoMess)
+        utl.Logger.Error(infoMess)
         return "", -1
     }
 
@@ -63,7 +63,7 @@ func GetNodeType(nodeId string) (nodeType string, nodeInd int) {
     }
 
     infoMess = fmt.Sprintf("Get the node type [nodeid = %s, nodetype = %s, nodeindex = %d]\n", nodeId, nodeType, nodeInd)
-    utl.Log("DEBUG", infoMess)
+    utl.Logger.Debug(infoMess)
     return nodeType, nodeInd
 
 }

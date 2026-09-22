@@ -28,7 +28,7 @@ func Stop(clusterName string, nodeId string, role string) {
 
     if checkStatus.CheckClusterName(clusterName) {
         infoMess = "Don't find the Cluster " + clusterName 
-        utl.Log("ERROR", infoMess)
+        utl.Logger.Error(infoMess)
         os.Exit(1)
     }
 
@@ -57,15 +57,15 @@ func Stop(clusterName string, nodeId string, role string) {
         // case id 2: stop FE or BE cluster
 	if role == "FE" {
 	    infoMess = "Stopping FE cluster ...."
-	    utl.Log("INFO", infoMess)
+	    utl.Logger.Info(infoMess)
 	    stopCluster.StopFeCluster(clusterName)
 	} else if role == "BE" {
             infoMess = "Stopping BE cluster ..."
-            utl.Log("INFO", infoMess)
+            utl.Logger.Info(infoMess)
             stopCluster.StopBeCluster(clusterName)
 	} else {
 	    infoMess = fmt.Sprintf("Error in get Node type. Please check the nodeId. You can use 'sr-ctl-cluster display %s ' to check the node id.[NodeId = %s]", clusterName, nodeId)
-	    utl.Log("ERROR", infoMess)
+	    utl.Logger.Error(infoMess)
 	}
     } // end of case 2
 
@@ -80,24 +80,24 @@ func Stop(clusterName string, nodeId string, role string) {
 	    // func StopFeNode(user string, keyRsa string, sshHost string, sshPort int, feDeployDir string) (err error) 
 	    // func StopBeNode(user string, keyRsa string, sshHost string, sshPort int, beDeployDir string) (err error)
 	    infoMess = fmt.Sprintf("Stopping FE node. [BeHost = %s]", tmpNodeHost)
-            utl.Log("INFO", infoMess)
+            utl.Logger.Info(infoMess)
             stopCluster.StopFeNode(tmpUser, tmpKeyRsa, tmpNodeHost, tmpSshPort, tmpDeployDir)
 	} else if tmpNodeType == "BE" {
             tmpNodeHost = module.GYamlConf.BeServers[i].Host
             tmpSshPort = module.GYamlConf.BeServers[i].SshPort
             tmpDeployDir = module.GYamlConf.BeServers[i].DeployDir
             infoMess = fmt.Sprintf("Stopping BE node. [BeHost = %s]", tmpNodeHost)
-            utl.Log("INFO", infoMess)
+            utl.Logger.Info(infoMess)
             stopCluster.StopBeNode(tmpUser, tmpKeyRsa, tmpNodeHost, tmpSshPort, tmpDeployDir)
 	} else {
 	    infoMess = fmt.Sprintf("Error in get Node type. Please check the nodeId. You can use 'sr-ctl-cluster display %s ' to check the node id.[NodeId = %s]", clusterName, nodeId)
-	    utl.Log("ERROR", infoMess)
+	    utl.Logger.Error(infoMess)
 	}
     }// end of case 3
 
     if nodeId != module.NULLSTR && role != module.NULLSTR {
         infoMess = "Detect both --node & --role option."
-	utl.Log("ERROR", infoMess)
+	utl.Logger.Error(infoMess)
     } // end of case 4
 
 }

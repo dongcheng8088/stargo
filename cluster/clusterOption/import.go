@@ -23,7 +23,7 @@ func ImportCluster(clusterName string, metaFile string) {
 	// check cluster exist
 	if !checkStatus.CheckClusterName(clusterName) {
 		infoMess = fmt.Sprintf("Error in importing the cluster. The cluster exist, pls change another namne. [ClusterName = %s, MetaFile = %s]", clusterName, metaFile)
-		utl.Log("ERROR", infoMess)
+		utl.Logger.Error(infoMess)
 		os.Exit(1)
 	}
 
@@ -32,7 +32,7 @@ func ImportCluster(clusterName string, metaFile string) {
 	if err != nil {
 		// the metafile doesn't exist
 		infoMess = fmt.Sprintf("Error in importing cluster. The MetaFile doesn't exist. [ClusterName = %s, MetaFile = %s]", clusterName, metaFile)
-		utl.Log("ERROR", infoMess)
+		utl.Logger.Error(infoMess)
 		os.Exit(1)
 	}
 
@@ -41,7 +41,7 @@ func ImportCluster(clusterName string, metaFile string) {
 	feEntryId, err := checkStatus.GetFeEntry(-1)
 	if err != nil || feEntryId == -1 {
 		infoMess = fmt.Sprintf("Error in get FE Entry ID when import cluster info, please check the FE nodes status first. [error = %v]", err)
-		utl.Log("ERROR", infoMess)
+		utl.Logger.Error(infoMess)
 		os.Exit(1)
 	}
 	module.SetFeEntry(feEntryId)

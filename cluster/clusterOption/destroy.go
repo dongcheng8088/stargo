@@ -17,7 +17,7 @@ func Destroy(clusterName string) {
 
     if checkStatus.CheckClusterName(clusterName) {
         infoMess = "Don't find the Cluster " + clusterName 
-        utl.Log("ERROR", infoMess)
+        utl.Logger.Error(infoMess)
         os.Exit(1)
     }
 

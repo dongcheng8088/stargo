@@ -18,7 +18,7 @@ func ListCluster() {
     dir, err := ioutil.ReadDir(metaPath)
     if err != nil {
         infoMess = fmt.Sprintf("Error in read dir [DirPath = %s]", metaPath)
-        utl.Log("ERROR", infoMess)
+        utl.Logger.Error(infoMess)
     }
 
     tmpMinus := []byte("----------------------------------------------------------------------------------------")

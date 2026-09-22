@@ -16,14 +16,14 @@ func ModifyConfig(fileName string, sourceStr string, targetStr string) (err erro
     _, err = os.Stat(fileName)
     if err != nil {
         infoMess = fmt.Sprintf("Error in modifing configuration, the configuration file doesn't exist [fileName = %s, sourceStr = %s, targetStr = %s]", fileName, sourceStr, targetStr)
-        Log("ERROR", infoMess)
+        Logger.Error(infoMess)
         return err
     }
 
     input, err := ioutil.ReadFile(fileName)
     if err != nil {
         infoMess = fmt.Sprintf("Error in modifing configuration, cannot read file [fileName = %s, sourceStr = %s, targetStr = %s]", fileName, sourceStr, targetStr)
-	Log("ERROR", infoMess)
+	Logger.Error(infoMess)
 	return err
     }
 
@@ -32,7 +32,7 @@ func ModifyConfig(fileName string, sourceStr string, targetStr string) (err erro
     err = ioutil.WriteFile(fileName, output, 0644)
     if err != nil {
         infoMess = fmt.Sprintf("Error in modifing configuration, cannot read file [fileName = %s, output = %s]", fileName, output)
-        Log("ERROR", infoMess)
+        Logger.Error(infoMess)
 	return err
     }
 
@@ -45,14 +45,14 @@ func AppendConfig(fileName string, configStr string) (err error){
     _, err = os.Stat(fileName)
     if err != nil {
         infoMess = fmt.Sprintf("Error in appending configuration, the configuration file doesn't exist [fileName = %s, configStr = %s]", fileName, configStr)
-        Log("ERROR", infoMess)
+        Logger.Error(infoMess)
         return err
     }
 
     file, err := os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
     if err != nil {
         infoMess = fmt.Sprintf("Error in appending configuration, cannot open file [fileName = %s, configStr = %s]", fileName, configStr)
-	Log("ERROR", infoMess)
+	Logger.Error(infoMess)
 	return err
     }
     defer file.Close()
@@ -63,7 +63,7 @@ func AppendConfig(fileName string, configStr string) (err error){
     _, err = file.WriteString(configStr + "\n")
     if err != nil {
         infoMess = fmt.Sprintf("Error in appending configuration, cannot write configStr [fileName = %s, configStr = %s]", fileName, configStr)
-	Log("ERROR", infoMess)
+	Logger.Error(infoMess)
 	return err
     }
 
@@ -80,7 +80,7 @@ func AppendConfig(fileName string, configKey string, configValue string) (err er
     _, err = os.Stat(fileName)
     if err != nil {
         infoMess = fmt.Sprintf("Error in appending configuration, the configuration file doesn't exist [fileName = %s, configkey = %s, configValue = %s]", fileName, configKey, configValue)
-        Log("ERROR", infoMess)
+        Logger.Error(infoMess)
         return err
     }
 
@@ -88,7 +88,7 @@ func AppendConfig(fileName string, configKey string, configValue string) (err er
     configFile, err := ioutil.ReadFile(fileName)
     if err != nil {
         infoMess = fmt.Sprintf("Error in appending configuration, read configuration file failed [fileName = %s, configKey = %s, configValue = %s]", fileName, configKey, configValue)
-        Log("ERROR", infoMess)
+        Logger.Error(infoMess)
         return err
     }
 
@@ -99,7 +99,7 @@ func AppendConfig(fileName string, configKey string, configValue string) (err er
             match, _ := regexp.MatchString(pattern, line)
             if match {
 	        infoMess := fmt.Sprintf("Comment the default value [fileName = %s, configKey = %s, configValue = %s]", fileName, configKey, configValue)
-		Log("DEBUG", infoMess)
+		Logger.Debug(infoMess)
 		lines[i] = "# " + lines[i] + "\t\t\t## comment by stargo"
 	    }
     }
@@ -111,11 +111,11 @@ func AppendConfig(fileName string, configKey string, configValue string) (err er
     err = ioutil.WriteFile(fileName, []byte(output), 0644)
     if err != nil {
         infoMess = fmt.Sprintf("Error in appending configuration, write the result to config file failed [fileName = %s, configStr= %s]", fileName, configStr)
-	Log("ERROR", infoMess)
+	Logger.Error(infoMess)
     }
 
     infoMess = fmt.Sprintf("Append configuration [fileName = %s, configStr= %s]", fileName, strings.Replace(configStr, "\n", "", -1))
-    Log("DEBUG", infoMess)
+    Logger.Debug(infoMess)
 
     return nil
 

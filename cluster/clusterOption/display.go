@@ -16,13 +16,13 @@ func Display(clusterName string) {
 
     if checkStatus.CheckClusterName(clusterName) {
         infoMess = "Don't find the Cluster " + clusterName 
-        utl.Log("ERROR", infoMess)
+        utl.Logger.Error(infoMess)
         os.Exit(1)
     }
 
     if checkStatus.CheckClusterName(clusterName) {
         infoMess = "Don't find the Cluster " + clusterName 
-        utl.Log("ERROR", infoMess)
+        utl.Logger.Error(infoMess)
         os.Exit(1)
     }
 

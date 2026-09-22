@@ -204,28 +204,28 @@ func PreCheckSR () {
     }
 
     infoMess = "PRE CHECK DEPLOY ENV:\n" + infoMess + fmt.Sprintf("\n")
-    utl.Log("OUTPUT", infoMess)
+    utl.Logger.Info(infoMess)
 
     checkFeMess = getFeAdvMess(preCheckFeAdv)
     if checkFeMess != "" {
         checkFeMess = "Please use bellowing promption to fix the issue for FE servers:\n" + checkFeMess
-        utl.Log("ERROR", checkFeMess)
+        utl.Logger.Error(checkFeMess)
     }
 
     checkBeMess = getBeAdvMess(preCheckBeAdv)
     if checkBeMess != "" {
         checkBeMess = "Please use bellowing promption to fix the issue for BE servers:\n" + checkBeMess
-        utl.Log("ERROR", checkBeMess)
+        utl.Logger.Error(checkBeMess)
     }
 
 
     if strings.Contains(infoMess, CHECKFAILED) {
 	infoMess = "PreCheck failed."
-        utl.Log("ERROR", infoMess)
+        utl.Logger.Error(infoMess)
         os.Exit(1)
     } else {
         infoMess = "PreCheck successfully. RESPECT"
-	utl.Log("OUTPUT", infoMess)
+	utl.Logger.Info(infoMess)
     }
 
 }
@@ -454,7 +454,7 @@ func dirPriv(user string, keyRsa string, sshHost string, sshPort int, dirName st
 
     if strings.Contains(dirStatArr[0], "drwx") && dirStatArr[2] == user {
         infoMess = fmt.Sprintf("Detect the %-20s don't have create folder privileges [Host = %-20s, Dir = %-30s]\n", logStr, sshHost, dirName)
-	utl.Log("DEBUG", infoMess)
+	utl.Logger.Debug(infoMess)
 	return CHECKPASS
     } else {
 	if dirBase != "/" {
@@ -488,7 +488,7 @@ func dirExist(user string, keyRsa string, sshHost string, sshPort int, dirName s
     output, _ := utl.SshRun(user, keyRsa, sshHost, sshPort, cmd)
     if strings.Contains(string(output), "total") {
 	infoMess = fmt.Sprintf("Detect the %-20s exist [Host = %-20s, Dir = %-30s]\n", logStr, sshHost, dirName)
-	utl.Log("DEBUG", infoMess)
+	utl.Logger.Debug(infoMess)
 	//return CHECKFAILED
 	resExist = "Dir exist"
     }
@@ -531,7 +531,7 @@ func portUsed(user string, keyRsa string, sshHost string, sshPort int, detectPor
     output, _ := utl.SshRun(user, keyRsa, sshHost, sshPort, cmd)
     if strings.Contains(string(output), ":" + strconv.Itoa(detectPort)) {
         infoMess = fmt.Sprintf("Detect the %s used [Host = %s, Port = %d]\n", logStr, sshHost, detectPort)
-	utl.Log("DEBUG", infoMess)
+	utl.Logger.Debug(infoMess)
         checkMess = fmt.Sprintf("  [Host = %s]  netstat -nltp ':%d '", sshHost, detectPort)
         return CHECKFAILED, checkMess
     }
@@ -553,11 +553,11 @@ func sudoPriv(sshHost string, sshPort int, userName string) string {
 
     if strings.Contains(string(output), "202") {
         infoMess = fmt.Sprintf("Detect user has sudo privilege. [Host = %s, User = %s]", sshHost, userName)
-	utl.Log("DEBUG", infoMess)
+	utl.Logger.Debug(infoMess)
 	return CHECKPASS
     } else {
         infoMess = fmt.Sprintf("Detect user doesn't have sudo privilege. [Host = %s, User = %s]", sshHost, userName)
-	utl.Log("DEBUG", infoMess)
+	utl.Logger.Debug(infoMess)
 	return CHECKFAILED
     }
 
@@ -579,12 +579,12 @@ func sshAuth(sshHost string, sshPort int) (string, string) {
     if strings.Contains(string(output), "202") {
         // detect the result has the year 202X, return PASS
         infoMess = fmt.Sprintf("SSH auth check successfully, [host = %s]", sshHost)
-	utl.Log("DEBUG", infoMess)
+	utl.Logger.Debug(infoMess)
 	return CHECKPASS, checkMess
     }
 
     infoMess = fmt.Sprintf("SSH auth check failed, [host = %s]", sshHost)
-    utl.Log("DEBUG", infoMess)
+    utl.Logger.Debug(infoMess)
 
     checkMess = fmt.Sprintf("  [Host = 127.0.01]  ssh-copy-id %s@%s", sshHost, sshUser)
 
@@ -603,13 +603,13 @@ func openFile(sshHost string, sshPort int) (string, string) {
     output, err := utl.SshRun(sshUser, keyRsa, sshHost, sshPort, "ulimit -n")
     if err != nil {
         infoMess = fmt.Sprintf("Error in get open file limit. [Host = %s]", sshHost)
-	utl.Log("ERROR", infoMess)
+	utl.Logger.Error(infoMess)
     }
     openFiles, err := strconv.Atoi(strings.Replace(string(output), "\n", "", -1))
 
     if err != nil {
         infoMess = fmt.Sprintf("Error in convert the open files count. [host = %s, openFiles = %s, error = %v]", strings.Replace(string(output), "\n", "", -1), err)
-	utl.Log("DEBUG", infoMess)
+	utl.Logger.Debug(infoMess)
 	checkMess = fmt.Sprintf("  [Host = %s, User = %s]  Cannot get the open files count. Please use command 'ulimit -n' on user %s to check the copnfiguration.", sshHost, sshUser, sshUser)
 	return CHECKFAILED, checkMess
     }
@@ -619,7 +619,7 @@ func openFile(sshHost string, sshPort int) (string, string) {
     }
 
     infoMess = fmt.Sprintf("Open files count check failed. Make it more than 65535. [host = %s, openFiles = %d]", sshHost, openFiles)
-    utl.Log("DEBUG", infoMess)
+    utl.Logger.Debug(infoMess)
     checkMess = fmt.Sprintf("  [Host = %s, User = %s]  Please add bellowing line in /etc/security/limits.conf\n%s     soft    nofile          65535\n%s     hard    nofile          65535", sshHost, sshUser, sshUser, sshUser)
     return CHECKFAILED, checkMess
 

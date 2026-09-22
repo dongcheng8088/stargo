@@ -18,11 +18,11 @@ func StopFeNode(user string, keyRsa string, sshHost string, sshPort int, feDeplo
     stopFeCmd = fmt.Sprintf("%s/bin/stop_fe.sh", feDeployDir)
 
     infoMess = fmt.Sprintf("Waiting for stoping FE node [FeHost = %s]", sshHost)
-    utl.Log("INFO", infoMess)
+    utl.Logger.Info(infoMess)
     _, err = utl.SshRun(user, keyRsa, sshHost, sshPort, stopFeCmd)
     if err != nil {
         infoMess = fmt.Sprintf("Stop FE failed [FeHost = %s, error = %v]", sshHost, err)
-        utl.Log("INFO", infoMess)
+        utl.Logger.Info(infoMess)
         return err
     }
     return nil
@@ -48,7 +48,7 @@ func StopFeCluster(clusterName string) {
     tmpKeyRsa = module.GSshKeyRsa
 
     infoMess = "Stop cluster " + clusterName
-    utl.Log("OUTPUT", infoMess)
+    utl.Logger.Info(infoMess)
     for i := 0; i < len(module.GYamlConf.FeServers); i++ {
 
         tmpSshHost = module.GYamlConf.FeServers[i].Host
@@ -66,14 +66,14 @@ func StopFeCluster(clusterName string) {
 
         if err != nil {
             infoMess = fmt.Sprintf("Error in get the fe status [FeHost = %s, error = %v]", tmpSshHost, err)
-            utl.Log("DEBUG", infoMess)
+            utl.Logger.Debug(infoMess)
         }
         if feStat["Alive"] == "false" {
             infoMess = fmt.Sprintf("The FE node stop succefully [host = %s, queryPort = %d]", tmpSshHost, tmpFeQueryPort)
-            utl.Log("OUTPUT", infoMess)
+            utl.Logger.Info(infoMess)
         } else {
             infoMess = fmt.Sprintf("The FE node stop failed [host = %s, queryPort = %d]", tmpSshHost, tmpFeQueryPort)
-            utl.Log("DEBUG", infoMess)
+            utl.Logger.Debug(infoMess)
         }
     }
 

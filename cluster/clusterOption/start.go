@@ -29,7 +29,7 @@ func Start(clusterName string, nodeId string, role string) {
 
     if checkStatus.CheckClusterName(clusterName) {
         infoMess = "Don't find the Cluster " + clusterName 
-        utl.Log("ERROR", infoMess)
+        utl.Logger.Error(infoMess)
         os.Exit(1)
     }
     // start all cluster: sr-ctl-cluster start sr-c1 
@@ -58,15 +58,15 @@ func Start(clusterName string, nodeId string, role string) {
         // case id 2: start FE or BE cluster
 	if role == "FE" {
 	    infoMess = "Starting FE cluster ...."
-	    utl.Log("INFO", infoMess)
+	    utl.Logger.Info(infoMess)
 	    startCluster.StartFeCluster()
 	} else if role == "BE" {
 	    startCluster.StartBeCluster()
             infoMess = "Starting BE cluster ..."
-            utl.Log("INFO", infoMess)
+            utl.Logger.Info(infoMess)
 	} else {
 	    infoMess = fmt.Sprintf("Error in get Node type. Please check the nodeId. You can use 'sr-ctl-cluster display %s ' to check the node id.[NodeId = %s]", clusterName, nodeId)
-	    utl.Log("ERROR", infoMess)
+	    utl.Logger.Error(infoMess)
 	}
     } // end of case 2
 
@@ -76,7 +76,7 @@ func Start(clusterName string, nodeId string, role string) {
 	tmpNodeType, i := checkStatus.GetNodeType(nodeId)
 	if tmpNodeType == "FE" {
 	    infoMess = "Please use --role FE to start all the FE node."
-	    utl.Log("ERROR", infoMess)
+	    utl.Logger.Error(infoMess)
 	    os.Exit(1)
             //tmpNodeHost = module.GYamlConf.FeServers[i].Host
             //tmpSshPort = module.GYamlConf.FeServers[i].SshPort
@@ -89,17 +89,17 @@ func Start(clusterName string, nodeId string, role string) {
             tmpNodePort = module.GYamlConf.BeServers[i].HeartbeatServicePort
             tmpDeployDir = module.GYamlConf.BeServers[i].DeployDir
             infoMess = fmt.Sprintf("Start BE node. [BeHost = %s, HeartbeatServicePort = %d]", tmpNodeHost, tmpNodePort)
-            utl.Log("INFO", infoMess)
+            utl.Logger.Info(infoMess)
             startCluster.StartBeNode(tmpUser, tmpKeyRsa, tmpNodeHost, tmpSshPort, tmpNodePort, tmpDeployDir)
 	} else {
 	    infoMess = fmt.Sprintf("Error in get Node type. Please check the nodeId. You can use 'sr-ctl-cluster display %s ' to check the node id.[NodeId = %s]", clusterName, nodeId)
-	    utl.Log("ERROR", infoMess)
+	    utl.Logger.Error(infoMess)
 	}
     }// end of case 3
 
     if nodeId != module.NULLSTR && role != module.NULLSTR {
         infoMess = "Detect both --node & --role option."
-	utl.Log("ERROR", infoMess)
+	utl.Logger.Error(infoMess)
     } // end of case 4
 
 }

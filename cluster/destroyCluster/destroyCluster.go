@@ -43,15 +43,15 @@ func rmFeDir(clusterName string) {
 
 	// remove deploy dir
 	infoMess = fmt.Sprintf("Waiting for remove FE deploy dir. [FeHost = %s, DeployDir = %s]", tmpFeHost, tmpRemoveDeployCmd)
-	utl.Log("INFO", infoMess)
+	utl.Logger.Info(infoMess)
 	_, _ = utl.SshRun(tmpUser, tmpKeyRsa, tmpFeHost, tmpFeSshPort, tmpRemoveDeployCmd)
 
 	infoMess = fmt.Sprintf("Waiting for remove FE meta dir. [FeHost = %s, MetaDir = %s]", tmpFeHost, tmpRemoveMetaCmd)
-	utl.Log("INFO", infoMess)
+	utl.Logger.Info(infoMess)
 	_, _ = utl.SshRun(tmpUser, tmpKeyRsa, tmpFeHost, tmpFeSshPort, tmpRemoveMetaCmd)
 
         infoMess = fmt.Sprintf("Fe node removed. [FeHost = %s]", tmpFeHost)
-	utl.Log("OUTPUT", infoMess)
+	utl.Logger.Info(infoMess)
     }
 }
 
@@ -81,15 +81,15 @@ func rmBeDir(clusterName string) {
 
         // remove deploy dir
         infoMess = fmt.Sprintf("Waiting for remove BE deploy dir. [BeHost = %s, DeployDir = %s]", tmpBeHost, tmpRemoveDeployCmd)
-        utl.Log("INFO", infoMess)
+        utl.Logger.Info(infoMess)
         _, _ = utl.SshRun(tmpUser, tmpKeyRsa, tmpBeHost, tmpBeSshPort, tmpRemoveDeployCmd)
 
         infoMess = fmt.Sprintf("Waiting for remove BE storage dir. [BeHost = %s, StorageDir = %s]", tmpBeHost, tmpRemoveStorageCmd)
-        utl.Log("INFO", infoMess)
+        utl.Logger.Info(infoMess)
         _, _ = utl.SshRun(tmpUser, tmpKeyRsa, tmpBeHost, tmpBeSshPort, tmpRemoveStorageCmd)
 
         infoMess = fmt.Sprintf("Be node removed. [BeHost = %s]", tmpBeHost)
-        utl.Log("OUTPUT", infoMess)
+        utl.Logger.Info(infoMess)
     }
 }
 
@@ -103,10 +103,10 @@ func rmMeta(clusterName string) {
     err := os.RemoveAll(metaFileDir)
     if err != nil {
         infoMess = fmt.Sprintf("Error in remove the meta dir. [Dir = %s]", metaFileDir)
-	utl.Log("ERROR", infoMess)
+	utl.Logger.Error(infoMess)
     } else {
         infoMess = fmt.Sprintf("Meta Dir removed. [Dir = %s]", metaFileDir)
-	utl.Log("OUTPUT", infoMess)
+	utl.Logger.Info(infoMess)
     }
 
 }

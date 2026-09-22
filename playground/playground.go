@@ -43,7 +43,7 @@ func RunPlayground() {
 
     if feSuccess && beSuccess {
 	infoMess = fmt.Sprintf("Playground run successfully. Please use bellowing command to connect StarRocks playground cluster:\nmysql -uroot -P9030 -h127.0.0.1")
-        utl.Log("OUTPUT", infoMess)
+        utl.Logger.Info(infoMess)
     }
 
 }

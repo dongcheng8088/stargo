@@ -31,7 +31,7 @@ func ClusterStat(clusterName string) {
     feEntryId, err = checkStatus.GetFeEntry(-1)
     if err != nil ||  feEntryId == -1 {
         infoMess = "All FE nodes are down, please start FE node and display the cluster status again."
-        utl.Log("WARN", infoMess)
+        utl.Logger.Warn(infoMess)
         noFeEntry = true 
     } else {
         // feEntryHost = module.GYamlConf.FeServers[feEntryId].Host
@@ -59,7 +59,7 @@ func ClusterStat(clusterName string) {
 	    feStatStruct, err := checkStatus.CheckFeStatus(i)
 	    if err != nil {
                 infoMess = fmt.Sprintf("Error in checking FE status [FeHost = %s, error = %v]", tmpHost, err)
-	        utl.Log("DEBUG", infoMess)
+	        utl.Logger.Debug(infoMess)
 	    }
 
             if feStatStruct["Alive"] == "true" {
@@ -103,7 +103,7 @@ func ClusterStat(clusterName string) {
             beStat, err := checkStatus.CheckBeStatus(i)
 	    if err != nil {
                 infoMess = fmt.Sprintf("Error in checking BE status [BeHost = %s, error = %v]", tmpHost, err)
-                utl.Log("DEBUG", infoMess)
+                utl.Logger.Debug(infoMess)
 	    }
 
 	    if beStat["Alive"] == "true" {

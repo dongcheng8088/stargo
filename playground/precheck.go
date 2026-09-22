@@ -38,13 +38,13 @@ func precheckOpenFiles() bool {
     cmdRes, err = utl.RunShellScript(execCMD)
     if err != nil {
         infoMess = fmt.Sprintf("Failed to run command. [cmd = %s]", execCMD)
-	utl.Log("ERROR", infoMess)
+	utl.Logger.Error(infoMess)
     }
 
     fileCount, err := strconv.Atoi(strings.Replace(cmdRes, "\n", "", -1))
     if err != nil {
         infoMess = fmt.Sprintf("Failed to convert string to int.[res = %s]", fileCount)
-	utl.Log("ERROR", infoMess)
+	utl.Logger.Error(infoMess)
     }
 
 
@@ -52,7 +52,7 @@ func precheckOpenFiles() bool {
         return true
     } else {
 	infoMess = fmt.Sprintf("Error in check the open file count. Please use the command [ulimit -n] to check the openfile count and make sure more than 65535.")
-	utl.Log("ERROR", infoMess)
+	utl.Logger.Error(infoMess)
         return false
     }
 }
@@ -68,7 +68,7 @@ func playgroundDirExist() bool {
 
     if err == nil {
         infoMess = fmt.Sprintf("Detect the playground dir exists. Please delete first. [playground dir = %s]", playgroundDir)
-	utl.Log("ERROR", infoMess)
+	utl.Logger.Error(infoMess)
         return false
     }
 

@@ -23,11 +23,11 @@ func ModifyBEConfig() {
     err := utl.ModifyConfig(modFile, srcConfig, tarConfig)
     if err != nil {
         infoMess = fmt.Sprintf("Error in modifing BE config [modFile = %s, srcConfig = %s, tarConfig = %s]", modFile, srcConfig, tarConfig)
-        utl.Log("ERROR", infoMess)
+        utl.Logger.Error(infoMess)
         panic(err)
     }
     infoMess = fmt.Sprintf("Modify BE config [modFile = %s, srcConfig = %s, tarConfig = %s]", modFile, srcConfig, tarConfig)
-    utl.Log("DEBUG", infoMess)
+    utl.Logger.Debug(infoMess)
 }
 
 
@@ -39,7 +39,7 @@ func AddBENode() {
     _, err := utl.RunShellScript(addExecCMD)
     if err != nil{
         infoMess = fmt.Sprintf("Error in running cmd, cmd = %s, err = %v", addExecCMD, err)
-	utl.Log("ERROR", infoMess)
+	utl.Logger.Error(infoMess)
     }
 
     time.Sleep(time.Duration(5) * time.Second)
@@ -47,11 +47,11 @@ func AddBENode() {
     res, err := utl.RunShellScript(checkExecCMD)
     if err != nil{
         infoMess = fmt.Sprintf("Error in running cmd.[cmd = %s, err = %v]", checkExecCMD, err)
-	utl.Log("ERROR", infoMess)
+	utl.Logger.Error(infoMess)
     }
 
     if strings.Contains(res, "127.0.0.1") {
-        utl.Log("OUTPUT", "BE node 127.0.0.1 added successfully.")
+        utl.Logger.Info("BE node 127.0.0.1 added successfully.")
     }
 
 }
@@ -65,7 +65,7 @@ func RunBEProcess() {
     _, err := os.Stat(storageDir)
     if err == nil {
         infoMess = fmt.Sprintf("Detect meta folder %s exists, delete it\n", storageDir)
-	utl.Log("ERROR", infoMess)
+	utl.Logger.Error(infoMess)
         err = os.RemoveAll(storageDir)
     }
 
@@ -77,7 +77,7 @@ func RunBEProcess() {
     _, err = utl.RunShellScript(execCMD)
     if err != nil {
 	infoMess = fmt.Sprintf("Error in running be process, cmd = %s, err = %v", execCMD, err)
-        utl.Log("ERROR", infoMess )
+        utl.Logger.Error(infoMess )
     }
 
     time.Sleep(time.Duration(15) * time.Second)
@@ -91,14 +91,14 @@ func CheckBEStatus() bool {
     for i := 0; i < 5; i++ {
         res, _ = utl.RunShellScript(execCMD)
         if strings.Contains(res, "true") {
-            utl.Log("OUTPUT", "BE start successfully.")
+            utl.Logger.Info("BE start successfully.")
             return true
         }
         time.Sleep(time.Duration(5) * time.Second)
     }
 
     if !strings.Contains(res, "true") {
-        utl.Log("ERROR", "BE start failed.")
+        utl.Logger.Error("BE start failed.")
     }
 
     return false

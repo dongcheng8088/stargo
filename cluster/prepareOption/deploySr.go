@@ -13,11 +13,11 @@ func DistributeSrDir() {
     var infoMess string
 
     infoMess = "Distribute FE Dir ..."
-    utl.Log("OUTPUT", infoMess)
+    utl.Logger.Info(infoMess)
     DistributeFeDir()
 
     infoMess = "Distribute BE Dir ..."
-    utl.Log("OUTPUT", infoMess)
+    utl.Logger.Info(infoMess)
     DistributeBeDir()
 
     //module.WriteBackMeta(module.GYamlConf, module.GWriteBackMetaPath)
@@ -43,7 +43,7 @@ func DistributeFeDir() {
         feTargetDir := module.GYamlConf.FeServers[i].DeployDir
         utl.UploadDir(sshUser, rsaKey, sshHost, sshPort, feSourceDir, feTargetDir)
         infoMess = fmt.Sprintf("Upload dir feSourceDir = [%s] to feTargetDir = [%s] on FeHost = [%s]", feSourceDir, feTargetDir, sshHost)
-        utl.Log("INFO", infoMess)
+        utl.Logger.Info(infoMess)
 
         // upload jdk dir
         jdkSourceDir := fmt.Sprintf("%s/jdk1.8.0_301", module.GDownloadPath)
@@ -51,7 +51,7 @@ func DistributeFeDir() {
         jdkTargetDir := fmt.Sprintf("%s/jdk", module.GYamlConf.FeServers[i].DeployDir)
         utl.UploadDir(sshUser, rsaKey, sshHost, sshPort, jdkSourceDir, jdkTargetDir)
         infoMess = fmt.Sprintf("Upload dir JDKSourceDir = [%s] to JDKTargetDir = [%s] on FeHost = [%s]", jdkSourceDir, jdkTargetDir, sshHost)
-        utl.Log("INFO", infoMess)
+        utl.Logger.Info(infoMess)
 
 
         // modify JAVA_HOME
@@ -59,7 +59,7 @@ func DistributeFeDir() {
         jdkPath := fmt.Sprintf("%s/jdk", module.GYamlConf.FeServers[i].DeployDir)
         modifyJavaHome(sshUser, rsaKey, sshHost, sshPort, startFeFilePath, jdkPath)
         infoMess = fmt.Sprintf("Modify JAVA_HOME: host = [%s], filePath = [%s]", sshHost, startFeFilePath)
-        utl.Log("INFO", infoMess)
+        utl.Logger.Info(infoMess)
 
     }
 
@@ -86,7 +86,7 @@ func DistributeBeDir() {
 	//utl.UploadDir(user string, keyFile string, host string, port int, sourceDir string, targetDir string)
 	utl.UploadDir(sshUser, rsaKey, sshHost, sshPort, beSourceDir, beTargetDir)
 	infoMess = fmt.Sprintf("Upload dir BeSourceDir = [%s] to BeTargetDir = [%s] on BeHost = [%s]", beSourceDir, beTargetDir, sshHost)
-	utl.Log("INFO", infoMess)
+	utl.Logger.Info(infoMess)
 
     }
 
@@ -106,7 +106,7 @@ func modifyJavaHome(sshUser string, rsaKey string, host string, sshPort int, sta
     _, err = utl.SshRun(sshUser, rsaKey, host, sshPort, cmd)
     if err != nil {
         infoMess = fmt.Sprintf("Error in modify JAVA_HOME. [FeHost = %s, cmd = %s, Error = %v]", host, cmd, err)
-        utl.Log("ERROR", infoMess)
+        utl.Logger.Error(infoMess)
         panic(err)
     }
 

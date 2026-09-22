@@ -26,11 +26,11 @@ func ModifyFEConfig() {
     err := utl.ModifyConfig(modFile, srcConfig, tarConfig)
     if err != nil {
         infoMess = fmt.Sprintf("Error in modify FE configuration [modFile = %s, srcConfig = %s, tarConfig = %s]", modFile, srcConfig, tarConfig)
-        utl.Log("ERROR", infoMess)
+        utl.Logger.Error(infoMess)
         panic(err)
     }
     infoMess = fmt.Sprintf("Modify FE configuration [modFile = %s, srcConfig = %s, tarConfig = %s]", modFile, srcConfig, tarConfig)
-    utl.Log("DEBUG", infoMess)
+    utl.Logger.Debug(infoMess)
 
     // modify priority_networks for fe.conf
     modFile = module.GSRCtlRoot + "/playground/fe/conf/fe.conf"
@@ -39,11 +39,11 @@ func ModifyFEConfig() {
     err = utl.ModifyConfig(modFile, srcConfig, tarConfig)
     if err != nil {
         infoMess = fmt.Sprintf("Error in modify FE configuration [modFile = %s, srcConfig = %s, tarConfig = %s]", modFile, srcConfig, tarConfig)
-        utl.Log("ERROR", infoMess)
+        utl.Logger.Error(infoMess)
         panic(err)
     }
     infoMess = fmt.Sprintf("Modify FE configuration [modFile = %s, srcConfig = %s, tarConfig = %s]", modFile, srcConfig, tarConfig)
-    utl.Log("DEBUG", infoMess)
+    utl.Logger.Debug(infoMess)
 
     // modify JAVA_HOME for start_fe.sh
     modFile = module.GSRCtlRoot + "/playground/fe/bin/start_fe.sh"
@@ -52,11 +52,11 @@ func ModifyFEConfig() {
     err = utl.ModifyConfig(modFile, srcConfig, tarConfig)
     if err != nil {
         infoMess = fmt.Sprintf("Error in modify FE configuration [modFile = %s, srcConfig = %s, tarConfig = %s]", modFile, srcConfig, tarConfig)
-        utl.Log("ERROR", infoMess)
+        utl.Logger.Error(infoMess)
         panic(err)
     }
     infoMess = fmt.Sprintf("Modify FE configuration [modFile = %s, srcConfig = %s, tarConfig = %s]", modFile, srcConfig, tarConfig)
-    utl.Log("DEBUG", infoMess)
+    utl.Logger.Debug(infoMess)
 
 }
 
@@ -82,7 +82,7 @@ func RunFEProcess() {
     _, err = utl.RunShellScript(execCMD)
     if err != nil {
         infoMess = fmt.Sprintf("Error in running cmd, cmd = %s, err = %v\n", execCMD, err)
-	utl.Log("ERROR", infoMess)
+	utl.Logger.Error(infoMess)
 
     }
 
@@ -98,7 +98,7 @@ func CheckFEStatus() bool {
         res, _:= utl.RunShellScript(execCMD)
 
         if strings.Contains(res, "true") {
-            utl.Log("OUTPUT", "fe start successfully.")
+            utl.Logger.Info("fe start successfully.")
             return true
         }
         time.Sleep(time.Duration(5) * time.Second)

@@ -51,13 +51,13 @@ func CheckFePortStatus(feId int) (checkPortRes bool, err error) {
 
 	if err != nil {
 		infoMess = fmt.Sprintf("Error in run cmd when check FE port status [FeHost = %s, error = %v]", tmpFeHost, err)
-		utl.Log("DEBUG", infoMess)
+		utl.Logger.Debug(infoMess)
 		return false, err
 	}
 
 	if strings.Contains(string(output), ":"+strconv.Itoa(tmpQueryPort)) {
 		infoMess = fmt.Sprintf("Check the fe query port %s:%d run successfully", tmpFeHost, tmpQueryPort)
-		utl.Log("DEBUG", infoMess)
+		utl.Logger.Debug(infoMess)
 		return true, nil
 	}
 
@@ -78,7 +78,7 @@ func GetFeStatJDBC(feId int) (feStat map[string]string, err error) {
 	rows, err := utl.RunSQL(module.GJdbcUser, module.GJdbcPasswd, tmpFeHost, tmpQueryPort, module.GJdbcDb, queryCMD)
 	if err != nil {
 		infoMess = fmt.Sprintf("Error in run sql when check fe status: [FeHost = %s, error = %v]", tmpFeHost, err)
-		utl.Log("DEBUG", infoMess)
+		utl.Logger.Debug(infoMess)
 		return feStat, err
 	}
 
@@ -96,7 +96,7 @@ func GetFeStatJDBC(feId int) (feStat map[string]string, err error) {
 
 		if err != nil {
 			infoMess = fmt.Sprintf("Error in scan sql result [FeHost = %s, error = %v]", tmpFeHost, err)
-			utl.Log("DEBUG", infoMess)
+			utl.Logger.Debug(infoMess)
 			return feStatus, err
 		}
 
@@ -157,13 +157,13 @@ func CheckFeStatus(feId int, user string, keyRsa string, sshHost string, sshPort
 
     if err != nil {
         infoMess = fmt.Sprintf("Error in run cmd when check FE status [FeHost = %s, error = %v]", sshHost, err)
-	utl.Log("DEBUG", infoMess)
+	utl.Logger.Debug(infoMess)
 	return feStat, err
     }
 
     if !strings.Contains(string(output), ":" + strconv.Itoa(feQueryPort)) {
         infoMess = fmt.Sprintf("Check the fe query port %s:%d run failed", sshHost, feQueryPort)
-	utl.Log("DEBUG", infoMess)
+	utl.Logger.Debug(infoMess)
 	err = errors.New(infoMess)
 	return feStat, err
     }
@@ -187,7 +187,7 @@ func CheckFeStatus(feId int, user string, keyRsa string, sshHost string, sshPort
                                         sqlStat = %s]
                                         error = %v`,
           feMasterUserName, feMasterPassword, feMasterIP, feMasterQueryPort, feMasterDbName, sqlStat, err)
-        utl.Log("ERROR", infoMess)
+        utl.Logger.Error(infoMess)
 	return feStat, err
     }
 
@@ -219,7 +219,7 @@ func CheckFeStatus(feId int, user string, keyRsa string, sshHost string, sshPort
                                         sqlStat = %s]
                                         error = %v`,
                      feMasterUserName, feMasterPassword, feMasterIP, feMasterQueryPort, feMasterDbName, sqlStat, err)
-            utl.Log("ERROR", infoMess)
+            utl.Logger.Error(infoMess)
 	    return feStat, err
 	}
         if string(tmpFeStat.FeIp) == sshHost && tmpFeStat.FeQueryPort == feQueryPort {

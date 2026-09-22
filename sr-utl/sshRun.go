@@ -30,7 +30,7 @@ func NewConfig(keyFile string, user string) (config *ssh.ClientConfig, err error
 				HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 			}
 			warnInsecureHostKeyOnce.Do(func() {
-				Log("WARN", "SSH host key verification is disabled (InsecureIgnoreHostKey), the connection is vulnerable to man-in-the-middle attacks.")
+				Logger.Warn("SSH host key verification is disabled (InsecureIgnoreHostKey), the connection is vulnerable to man-in-the-middle attacks.")
 			})
 			return config, nil
 		}
@@ -56,11 +56,11 @@ func sshRun(config *ssh.ClientConfig, host string, port int, command string) (ou
 
 	outPut, err = session.CombinedOutput(command)
 	if err != nil {
-		Log("DEBUG", fmt.Sprintf("on [%s:%d] run cmd %s failed: %v, output: %s", host, port, command, err, string(outPut)))
+		Logger.Debug(fmt.Sprintf("on [%s:%d] run cmd %s failed: %v, output: %s", host, port, command, err, string(outPut)))
 		return outPut, err
 	}
 
-	Log("DEBUG", fmt.Sprintf("on [%s:%d] run cmd %s result: %s", host, port, command, string(outPut)))
+	Logger.Debug(fmt.Sprintf("on [%s:%d] run cmd %s result: %s", host, port, command, string(outPut)))
 	return outPut, nil
 }
 
@@ -188,7 +188,7 @@ func UploadDir(user string, keyFile string, host string, port int, sourceDir str
 	_, innerError = SshRun(user, keyFile, host, port, cmd)
 	if innerError != nil {
 		infoMess := fmt.Sprintf("Error in create folder [%s] on [%s:%d]", targetDir, host, port)
-		Log("ERROR", infoMess)
+		Logger.Error(infoMess)
 		err = fmt.Errorf("%s: %v", infoMess, innerError)
 		return err
 	}

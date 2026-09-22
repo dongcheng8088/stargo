@@ -38,7 +38,7 @@ func StartBeCluster() {
         tmpBeDeployDir = module.GYamlConf.BeServers[i].DeployDir
 
         infoMess = fmt.Sprintf("Starting BE node [BeHost = %s, HeartbeatServicePort = %d]", tmpSshHost, tmpHeartbeatServicePort)
-        utl.Log("INFO", infoMess)
+        utl.Logger.Info(infoMess)
 
         _ = StartBeNode(tmpUser, tmpKeyRsa, tmpSshHost, tmpSshPort, tmpHeartbeatServicePort, tmpBeDeployDir)
         for j := 0; j < 3; j++ {
@@ -62,14 +62,14 @@ func StartBeNode(user string, keyRsa string, sshHost string, sshPort int, heartb
     startBeCMD := fmt.Sprintf("%s/bin/start_be.sh --daemon", beDeployDir)
 
     infoMess = fmt.Sprintf("Starting BE node [host = %s, heartbeatServicePort = %d]", sshHost, heartbeatServicePort)
-    utl.Log("DEBUG", infoMess)
+    utl.Logger.Debug(infoMess)
 
 
     // run beDeploy/bin/start_be.sh --daemon 
     _, err = utl.SshRun(user, keyRsa, sshHost, sshPort, startBeCMD)
     if err != nil {
         infoMess = fmt.Sprintf("Waiting for start BE node.[BeHost = %s, Error =  %v", sshHost, err)
-        utl.Log("DEBUG", infoMess)
+        utl.Logger.Debug(infoMess)
         return err
     }
 

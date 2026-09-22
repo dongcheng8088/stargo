@@ -61,13 +61,13 @@ func CheckBePortStatus(beId int) (checkPortRes bool, err error) {
 
     if err != nil {
         infoMess = fmt.Sprintf("Error in run cmd when check BE port status [BeHost = %s, error = %v]", tmpBeHost, err)
-        utl.Log("DEBUG", infoMess)
+        utl.Logger.Debug(infoMess)
         return false, err
     }
 
     if strings.Contains(string(output), ":" + strconv.Itoa(tmpHeartbeatServicePort)) {
         infoMess = fmt.Sprintf("Check the BE query port %s:%d run successfully", tmpBeHost, tmpHeartbeatServicePort)
-        utl.Log("DEBUG", infoMess)
+        utl.Logger.Debug(infoMess)
         return true, nil
     }
 
@@ -88,7 +88,7 @@ func GetBeStatJDBC(beId int) (beStat BeStatusStruct, err error) {
     rows, err := utl.RunSQL(module.GJdbcUser, module.GJdbcPasswd, module.GFeEntryHost, module.GFeEntryQueryPort, module.GJdbcDb, queryCMD)
     if err != nil{
         infoMess = fmt.Sprintf("Error in run sql when check BE status: [BeHost = %s, error = %v]", tmpBeHost, err)
-        utl.Log("DEBUG", infoMess)
+        utl.Logger.Debug(infoMess)
         return beStat, err
     }
 
@@ -119,7 +119,7 @@ func GetBeStatJDBC(beId int) (beStat BeStatusStruct, err error) {
                           &tmpBeStat.DataUsedPct)
         if err != nil {
             infoMess = fmt.Sprintf("Error in scan sql result [BeHost = %s, error = %v]", tmpBeHost, err)
-            utl.Log("DEBUG", infoMess)
+            utl.Logger.Debug(infoMess)
             return beStat, err
         }
 
@@ -155,7 +155,7 @@ func GetBeStatJDBC(beId int) (beStatus map[string]string, err error) {
 
     if err != nil{
         infoMess = fmt.Sprintf("Error in run sql when check BE status: [BeHost = %s, error = %v]", tmpBeHost, err)
-        utl.Log("DEBUG", infoMess)
+        utl.Logger.Debug(infoMess)
         return beStatus, err
     }
 
@@ -175,7 +175,7 @@ func GetBeStatJDBC(beId int) (beStatus map[string]string, err error) {
 
         if err != nil {
             infoMess = fmt.Sprintf("Error in scan sql result [BeHost = %s, error = %v]", tmpBeHost, err)
-            utl.Log("DEBUG", infoMess)
+            utl.Logger.Debug(infoMess)
             return beStatus, err
         }
 

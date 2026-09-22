@@ -27,6 +27,13 @@ func main() {
 	var role string
 	var firstArgWithDash int
 
+	// 初始化日志器
+	if err := utl.InitLogger(utl.DefaultLogConfig()); err != nil {
+		fmt.Fprintf(os.Stderr, "init logger failed: %v\n", err)
+		os.Exit(1)
+	}
+	defer utl.CloseLogger()
+
 	// 参数1：组件名称，可选值：playground, cluster
 	// 参数2：命令，在参数1为cluster时，可选值：deploy, start, stop, display,
 	//      list，destroy，upgrade,downgrade,scale-out, scale-in, import
@@ -35,7 +42,7 @@ func main() {
 	// 参数5：元配置文件名称，可以是决定路径，也可以是相对路径，例如：/tmp/sr-c1.json, sr-c2.json, ...
 
 	if len(os.Args) < 2 {
-		utl.Log("ERROR", "参数不足，第一个参数可以是playground、checkport或cluster命令。")
+		utl.Logger.Error("参数不足，第一个参数可以是playground、checkport或cluster命令。")
 		return
 	}
 
@@ -46,13 +53,13 @@ func main() {
 
 	case "checkport":
 		if len(os.Args) < 3 {
-			utl.Log("ERROR", "程序启动的第一个参数是checkport时，第二个参数必须给出端口号。")
+			utl.Logger.Error("程序启动的第一个参数是checkport时，第二个参数必须给出端口号。")
 			return
 		}
 		// 1. 字符串转 uint32
 		u64Val, err := strconv.ParseUint(os.Args[2], 10, 32)
 		if err != nil {
-			utl.Log("ERROR", "传入参数错误，第二个参数端口号必须是有效的无符号整数。")
+			utl.Logger.Error("传入参数错误，第二个参数端口号必须是有效的无符号整数。")
 			return
 		}
 		portNo := uint32(u64Val)
@@ -60,43 +67,43 @@ func main() {
 		portUsed, err := utl.IsPortUsedTcpOnly(portNo)
 		if err != nil {
 			msg = fmt.Sprintf("检查端口[%d]是否被占用失败，错误信息：%s", portNo, err.Error())
-			utl.Log("ERROR", msg)
+			utl.Logger.Error(msg)
 		} else {
 			if portUsed {
 				msg = fmt.Sprintf("端口[%d]已被占用。", portNo)
-				utl.Log("INFO", msg)
+				utl.Logger.Info(msg)
 			} else {
 				msg = fmt.Sprintf("端口[%d]未被占用。", portNo)
-				utl.Log("INFO", msg)
+				utl.Logger.Info(msg)
 			}
 		}
 
 	case "cluster":
 		if len(os.Args) < 3 {
-			utl.Log("ERROR", "程序启动的第一个参数是cluster时，第二个参数必须是命令。")
+			utl.Logger.Error("程序启动的第一个参数是cluster时，第二个参数必须是命令。")
 			return
 		}
 		command = os.Args[2]
 		switch command {
 		case "deploy":
 			if len(os.Args) < 6 {
-				utl.Log("ERROR", "deploy命令后的参数依次必须是集群名称、集群版本、元配置文件名称。")
+				utl.Logger.Error("deploy命令后的参数依次必须是集群名称、集群版本、元配置文件名称。")
 				return
 			}
 			clusterName = os.Args[3]
 			clusterVersion = os.Args[4]
 			metaFile = os.Args[5]
 			infoMess = fmt.Sprintf("Deploy cluster [clusterName = %s, clusterVersion = %s, metaFile = %s]\n", clusterName, clusterVersion, metaFile)
-			utl.Log("OUTPUT", infoMess)
+			utl.Logger.Info(infoMess)
 			clusterOption.Deploy(clusterName, clusterVersion, metaFile)
 		case "start":
 			if len(os.Args) < 4 {
-				utl.Log("ERROR", "start命令后的参数必须是集群名称。")
+				utl.Logger.Error("start命令后的参数必须是集群名称。")
 				return
 			}
 			clusterName = os.Args[3]
 			infoMess = fmt.Sprintf("Start cluster [clusterName = %s]", clusterName)
-			utl.Log("OUTPUT", infoMess)
+			utl.Logger.Info(infoMess)
 			firstArgWithDash = 1
 			for i := 1; i < len(os.Args); i++ {
 				firstArgWithDash = i
@@ -110,12 +117,12 @@ func main() {
 			clusterOption.Start(clusterName, node, role)
 		case "stop":
 			if len(os.Args) < 4 {
-				utl.Log("ERROR", "stop命令后的参数必须是集群名称。")
+				utl.Logger.Error("stop命令后的参数必须是集群名称。")
 				return
 			}
 			clusterName = os.Args[3]
 			infoMess = fmt.Sprintf("Stop cluster [clusterName = %s]", clusterName)
-			utl.Log("OUTPUT", infoMess)
+			utl.Logger.Info(infoMess)
 			firstArgWithDash = 1
 			for i := 1; i < len(os.Args); i++ {
 				firstArgWithDash = i
@@ -129,59 +136,59 @@ func main() {
 			clusterOption.Stop(clusterName, node, role)
 		case "display":
 			if len(os.Args) < 4 {
-				utl.Log("ERROR", "display命令后的参数必须是集群名称。")
+				utl.Logger.Error("display命令后的参数必须是集群名称。")
 				return
 			}
 			clusterName = os.Args[3]
 			infoMess = fmt.Sprintf("Display cluster [clusterName = %s]", clusterName)
-			utl.Log("OUTPUT", infoMess)
+			utl.Logger.Info(infoMess)
 			clusterOption.Display(clusterName)
 		case "list":
 			infoMess = fmt.Sprintf("List all clusters")
-			utl.Log("OUTPUT", infoMess)
+			utl.Logger.Info(infoMess)
 			clusterOption.List()
 		case "destroy":
 			if len(os.Args) < 4 {
-				utl.Log("ERROR", "destroy命令后的参数必须是集群名称。")
+				utl.Logger.Error("destroy命令后的参数必须是集群名称。")
 				return
 			}
 			clusterName = os.Args[3]
 			infoMess = fmt.Sprintf("Destroy cluster. [ClusterName = %s]", clusterName)
-			utl.Log("OUTPUT", infoMess)
+			utl.Logger.Info(infoMess)
 			clusterOption.Destroy(clusterName)
 		case "upgrade":
 			if len(os.Args) < 5 {
-				utl.Log("ERROR", "upgrade命令后的参数必须是集群名称、目标版本。")
+				utl.Logger.Error("upgrade命令后的参数必须是集群名称、目标版本。")
 				return
 			}
 			clusterName = os.Args[3]
 			clusterVersion = os.Args[4]
 			infoMess = fmt.Sprintf("Upgrade cluster. [ClusterName = %s, TargetVersion = %s]", clusterName, clusterVersion)
-			utl.Log("OUTPUT", infoMess)
+			utl.Logger.Info(infoMess)
 			clusterOption.Upgrade(clusterName, clusterVersion)
 		case "downgrade":
 			if len(os.Args) < 5 {
-				utl.Log("ERROR", "downgrade命令后的参数必须是集群名称、目标版本。")
+				utl.Logger.Error("downgrade命令后的参数必须是集群名称、目标版本。")
 				return
 			}
 			clusterName = os.Args[3]
 			clusterVersion = os.Args[4]
 			infoMess = fmt.Sprintf("Downgrade cluster. [ClusterName = %s, TargetVersion = %s]", clusterName, clusterVersion)
-			utl.Log("OUTPUT", infoMess)
+			utl.Logger.Info(infoMess)
 			clusterOption.Downgrade(clusterName, clusterVersion)
 		case "scale-out":
 			if len(os.Args) < 5 {
-				utl.Log("ERROR", "scale-out命令后的参数必须是集群名称、元配置文件名称。")
+				utl.Logger.Error("scale-out命令后的参数必须是集群名称、元配置文件名称。")
 				return
 			}
 			clusterName = os.Args[3]
 			metaFile = os.Args[4]
 			infoMess = fmt.Sprintf("Scale out cluster. [ClusterName = %s]", clusterName)
-			utl.Log("OUTPUT", infoMess)
+			utl.Logger.Info(infoMess)
 			clusterOption.ScaleOut(clusterName, metaFile)
 		case "scale-in":
 			if len(os.Args) < 4 {
-				utl.Log("ERROR", "scale-in命令后的参数必须是集群名称。")
+				utl.Logger.Error("scale-in命令后的参数必须是集群名称。")
 				return
 			}
 			clusterName = os.Args[3]
@@ -193,26 +200,26 @@ func main() {
 				}
 			}
 			if firstArgWithDash == -1 {
-				utl.Log("ERROR", "scale-in命令的集群名称参数后面必须是以-开头的参数。")
+				utl.Logger.Error("scale-in命令的集群名称参数后面必须是以-开头的参数。")
 				return
 			}
 			flag.StringVar(&node, "node", "", "The Node ID. Use display command to check the node id.")
 			flag.CommandLine.Parse(os.Args[firstArgWithDash:])
 			infoMess = fmt.Sprintf("Scale in cluster [clusterName = %s, nodeId = %s]", clusterName, node)
-			utl.Log("OUTPUT", infoMess)
+			utl.Logger.Info(infoMess)
 			clusterOption.ScaleIn(clusterName, node)
 		case "import":
 			if len(os.Args) < 5 {
-				utl.Log("ERROR", "import命令后的参数必须是集群名称、元配置文件名称。")
+				utl.Logger.Error("import命令后的参数必须是集群名称、元配置文件名称。")
 				return
 			}
 			clusterName = os.Args[3]
 			metaFile = os.Args[4]
 			infoMess = fmt.Sprintf("Import the cluster [clusterName = %s, metaFile = %s]", clusterName, metaFile)
-			utl.Log("OUTPUT", infoMess)
+			utl.Logger.Info(infoMess)
 			clusterOption.ImportCluster(clusterName, metaFile)
 		// case "test":
-		// utl.Log("OUTPUT", "TEST >>>>>>>>>")
+		// utl.Logger.Info("TEST >>>>>>>>>")
 		// checkStatus.TestFeStatus()
 		//prepareOption.TestPreCheck()
 		//prepareOption.PreCheckSR()
@@ -220,11 +227,11 @@ func main() {
 		default:
 			infoMess = fmt.Sprintf("cluster参数后的命令必须是 %s 之一，命令 %s 无效。",
 				"deploy start stop display list destroy upgrade downgrade scale-out scale-in import", command)
-			utl.Log("ERROR", infoMess)
+			utl.Logger.Error(infoMess)
 		}
 	default:
 		infoMess = "程序启动时的第一个参数必须是playground或cluster.\n"
 		fmt.Printf(infoMess)
-		utl.Log("ERROR", infoMess)
+		utl.Logger.Error(infoMess)
 	}
 }

@@ -22,7 +22,7 @@ func Downgrade(clusterName string, clusterVersion string) {
 
     if checkStatus.CheckClusterName(clusterName) {
         infoMess = "Don't find the Cluster " + clusterName 
-        utl.Log("ERROR", infoMess)
+        utl.Logger.Error(infoMess)
         os.Exit(1)
     }
  
@@ -30,11 +30,11 @@ func Downgrade(clusterName string, clusterVersion string) {
     newVersion := clusterVersion
     if compareVersions(oldVersion, newVersion) <= 0 {
         infoMess = fmt.Sprintf("OldVersion = %s  NewVersion = %s, the NewVersion is not lower than OldVersion", oldVersion, newVersion)
-        utl.Log("ERROR", infoMess)
+        utl.Logger.Error(infoMess)
         os.Exit(1)
     } else {
         infoMess = fmt.Sprintf("Downgrade StarRocks Cluster %s, from version %s to version %s", clusterName, oldVersion, newVersion)
-        utl.Log("OUTPUT", infoMess)
+        utl.Logger.Info(infoMess)
     }
  
     prepareOption.PrepareSRPkg() 

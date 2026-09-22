@@ -35,14 +35,14 @@ func GetBeConf() {
         defer res.Body.Close()
         if err != nil {
             infoMess = fmt.Sprintf("Error in create http get request when get BE conf. [beHttpUrl = %s, error = %v]", beHttpUrl, err)
-            utl.Log("ERROR", infoMess)
+            utl.Logger.Error(infoMess)
             os.Exit(1)
         }
 
         robots, err := ioutil.ReadAll(res.Body)
         if err != nil{
             infoMess = fmt.Sprintf("Error in read body.[error = %v]", err)
-            utl.Log("ERROR", infoMess)
+            utl.Logger.Error(infoMess)
             os.Exit(1)
         }
 

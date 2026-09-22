@@ -31,12 +31,12 @@ func GetFeEntry(blackFeNodeId int) (feEntryId int, err error) {
 	output, err := utl.SshRun(tmpUser, tmpKeyRsa, tmpSshHost, tmpSshPort, cmd)
 	if err != nil {
             infoMess = fmt.Sprintf("Error in get FE entry, checking query port failed. [FeHost = %s, QueryPort = %d, error = %v]", tmpSshHost, tmpQueryPort, err)
-            utl.Log("DEBUG", infoMess)
+            utl.Logger.Debug(infoMess)
 	}
 
 	if strings.Contains(string(output), ":" + strconv.Itoa(tmpQueryPort)) {
             infoMess = fmt.Sprintf("Get a useable FE entry. [FeID = %d, FeHost = %s, QueryPort = %d]", i, tmpSshHost, tmpQueryPort)
-            utl.Log("DEBUG", infoMess)
+            utl.Logger.Debug(infoMess)
             return i, nil
 	}
     }

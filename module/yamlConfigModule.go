@@ -208,13 +208,13 @@ func WriteBackMeta(cc *ConfStruct, metaFilePath string) {
 	_, err := os.Create(metaFileName)
 	if err != nil {
 		infoMess = fmt.Sprintf("Error in create the meta file [fileName = %s]", metaFileName)
-		utl.Log("ERROR", infoMess)
+		utl.Logger.Error(infoMess)
 	}
 
 	metaF, err := os.OpenFile(metaFileName, os.O_RDWR, 0644)
 	if err != nil {
 		infoMess = fmt.Sprintf("Error in opening write-back meta file [fileName = %s]", metaFileName)
-		utl.Log("ERROR", infoMess)
+		utl.Logger.Error(infoMess)
 		clusterNameArr := strings.Split(metaFilePath, "/")
 		clusterName := clusterNameArr[len(clusterNameArr)-1]
 		infoMess = fmt.Sprintf(`You can shoot the trouble as bellowing step:
@@ -236,13 +236,13 @@ func WriteBackMeta(cc *ConfStruct, metaFilePath string) {
 	jsonStr, err := json.MarshalIndent(cc, "", "  ")
 	if err != nil {
 		infoMess = fmt.Sprintf("Error in marshalling json structure.")
-		utl.Log("ERROR", infoMess)
+		utl.Logger.Error(infoMess)
 	}
 
 	_, err = metaF.WriteString(string(jsonStr))
 	if err != nil {
 		infoMess = fmt.Sprintf("Error in writing back to meta file [fileName = %s]", metaFileName)
-		utl.Log("ERROR", infoMess)
+		utl.Logger.Error(infoMess)
 	}
 
 }

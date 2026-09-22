@@ -47,7 +47,7 @@ func ModifyClusterConfig() {
     var configMap map[string] string
 
     infoMess = "Modify configuration for FE nodes & BE nodes ..."
-    utl.Log("OUTPUT", infoMess)
+    utl.Logger.Info(infoMess)
     // modify FE config
     for i := 0; i < len(module.GYamlConf.FeServers); i++ {
         // copy fe config file
@@ -60,7 +60,7 @@ func ModifyClusterConfig() {
 	err := copyConfigFile(tmpFeSourceConfFile, tmpFeTargetConfFile)
 	if err != nil {
 	    infoMess = fmt.Sprintf("Error in modifing fe cluster configuration. Copy configuration file failed [sourceFile = %s, targetFile = %s]", tmpFeSourceConfFile, tmpFeTargetConfFile)
-	    utl.Log("ERROR", infoMess)
+	    utl.Logger.Error(infoMess)
 	    panic(err)
 	}
 
@@ -110,7 +110,7 @@ func ModifyClusterConfig() {
         err := copyConfigFile(tmpBeSourceConfFile, tmpBeTargetConfFile)
         if err != nil {
             infoMess = fmt.Sprintf("Error in modifing BE cluster configuration. Copy configuration file failed [sourceFile = %s, targetFile = %s]", tmpBeSourceConfFile, tmpBeTargetConfFile)
-            utl.Log("ERROR", infoMess)
+            utl.Logger.Error(infoMess)
             panic(err)
         }
 
@@ -153,7 +153,7 @@ func copyConfigFile(sourceFile string, targetFile string) (err error){
     fileByte, err := utl.CopyFile(sourceFile, targetFile)
     if err != nil || fileByte == 0 {
         infoMess = fmt.Sprintf("Error in copy fe config file, [sourceFile = %s, targetFile = %s, fileByte = %d, error = %v]", sourceFile, targetFile, fileByte, err)
-	utl.Log("ERROR", infoMess)
+	utl.Logger.Error(infoMess)
 	return err
     }
 
@@ -168,11 +168,11 @@ func appendConfig(configFile string, configKey string, configValue string) {
     err := utl.AppendConfig(configFile, configKey, configValue)
     if err != nil {
         infoMess = fmt.Sprintf("Error in append new configuration to tmp config file [configFile = %s, configKey = %s, configValue = %s]", configFile, configKey, configValue)
-        utl.Log("ERROR", infoMess)
+        utl.Logger.Error(infoMess)
         panic(err)
     }
     infoMess = fmt.Sprintf("Append new configuration to tmp config file [configFile = %s, configKey = %s, configValue = %s]", configFile, configKey, configValue)
-    utl.Log("DEBUG", infoMess)
+    utl.Logger.Debug(infoMess)
 
 }
 

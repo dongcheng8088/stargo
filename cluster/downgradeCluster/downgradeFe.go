@@ -27,7 +27,7 @@ func DowngradeFeCluster() { //(err error){
     feEntryId, err = checkStatus.GetFeEntry(-1)
     if err != nil ||  feEntryId == -1 {
         //infoMess = "All FE nodes are down, please start FE node and display the cluster status again."
-        //utl.Log("WARN", infoMess)
+        //utl.Logger.Warn(infoMess)
         module.SetFeEntry(0)
     } else {
         module.SetFeEntry(feEntryId)
@@ -36,11 +36,11 @@ func DowngradeFeCluster() { //(err error){
 
     for i := 0; i < len(module.GYamlConf.FeServers); i++ {
         infoMess = fmt.Sprintf("Starting downgrade FE node. [feId = %d]", i)
-        utl.Log("OUTPUT", infoMess)
+        utl.Logger.Info(infoMess)
         err = DowngradeFeNode(i)
         if err != nil {
             infoMess = fmt.Sprintf("Error in downgrade FE node. [nodeid = %d]", i)
-            utl.Log("ERROR", infoMess)
+            utl.Logger.Error(infoMess)
         }
 
         feStat, err = checkStatus.CheckFeStatus(i)
@@ -48,12 +48,12 @@ func DowngradeFeCluster() { //(err error){
 
         for j := 0; j < 3; j++ {
             infoMess = fmt.Sprintf("The %d time to check FE status: %v", j, feStat["Alive"])
-            utl.Log("DEBUG", infoMess)
+            utl.Logger.Debug(infoMess)
             if feStat["Alive"] == "true"{
                 break
             } else {
                 infoMess = fmt.Sprintf("The FE node doesn't work, wait for 10s and check the status again. [feId = %d]\n", i)
-                utl.Log("DEBUG", infoMess)
+                utl.Logger.Debug(infoMess)
                 time.Sleep(10 * time.Second)
                 feStat, err = checkStatus.CheckFeStatus(i)
             }
@@ -62,20 +62,20 @@ func DowngradeFeCluster() { //(err error){
 
         if err != nil {
             infoMess = fmt.Sprintf("Error in get the FE status [feId = %d, error = %v]", i, err)
-            utl.Log("DEBUG", infoMess)
+            utl.Logger.Debug(infoMess)
             //return err
         }
         if feStat["Alive"] == "false" {
             infoMess = fmt.Sprintf("The FE node downgrade failed. The FE node doesn't work. [feId = %d]\n", i)
-            utl.Log("ERROR", infoMess)
+            utl.Logger.Error(infoMess)
             //return errors.New(infoMess)
         } else if ! strings.Contains(feStat["FeVersion"], strings.Replace(module.GSRVersion, "v", "", -1)) {
             infoMess = fmt.Sprintf("The FE node downgrade failed.  [feId = %d, targetVersion = %s, currentVersion = v%s]", i, module.GSRVersion, feStat["FeVersion"])
-            utl.Log("ERROR", infoMess)
+            utl.Logger.Error(infoMess)
             //return errors.New(infoMess)
         } else {
             infoMess = fmt.Sprintf("The Fe node downgrade successfully. [feId = %d, currentVersion = v%s]", i, feStat["FeVersion"])
-            utl.Log("OUTPUT", infoMess)
+            utl.Logger.Info(infoMess)
         }
     }
 
@@ -119,11 +119,11 @@ func DowngradeFeNode(feId int) (err error) {
     err = utl.RenameDir(user, keyRsa, sshHost, sshPort, sourceDir, targetDir)
     if err != nil {
         infoMess = fmt.Sprintf("Error in rename dir when backup FE lib. [host = %s, sourceDir = %s, targetDir = %s]", sshHost, sourceDir, targetDir)
-        utl.Log("ERROR", infoMess)
+        utl.Logger.Error(infoMess)
         return err
     } else {
         infoMess = fmt.Sprintf("downgrade FE node - backup FE lib. [host = %s, sourceDir = %s, targetDir = %s]", sshHost, sourceDir, targetDir)
-        utl.Log("INFO", infoMess)
+        utl.Logger.Info(infoMess)
     }
 
 
@@ -133,7 +133,7 @@ func DowngradeFeNode(feId int) (err error) {
     targetDir = fmt.Sprintf("%s/lib", feDeployDir)
     utl.UploadDir(user, keyRsa, sshHost, sshPort, sourceDir, targetDir)
     infoMess = fmt.Sprintf("downgrade FE node - download new FE lib. [host = %s, sourceDir = %s, targetDir = %s]", sshHost, sourceDir, targetDir)
-    utl.Log("INFO", infoMess)
+    utl.Logger.Info(infoMess)
 
 
 
@@ -141,17 +141,17 @@ func DowngradeFeNode(feId int) (err error) {
     err = stopCluster.StopFeNode(user, keyRsa, sshHost, sshPort, feDeployDir)
     if err != nil {
         infoMess = fmt.Sprintf("Error in stop FE node when downgrade FE node. [host = %s, feDeployDir = %s]", sshHost, feDeployDir)
-        utl.Log("ERROR", infoMess)
+        utl.Logger.Error(infoMess)
         return err   
     } else {
         infoMess = fmt.Sprintf("downgrade FE node - stop FE node. [host = %s, feDeployDir = %s]", sshHost, feDeployDir)
-        utl.Log("INFO", infoMess)
+        utl.Logger.Info(infoMess)
     }
 
     // step4. start FE node
     startCluster.StartFeNode(user, keyRsa, sshHost, sshPort, feEditLogPort, feDeployDir)
     infoMess = fmt.Sprintf("downgrade FE node - start FE node. [host = %s, feDeployDir = %s]", sshHost, feDeployDir)
-    utl.Log("INFO", infoMess)
+    utl.Logger.Info(infoMess)
         
 
     return nil

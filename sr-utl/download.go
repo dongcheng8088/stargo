@@ -15,27 +15,27 @@ func IsFileExist(absFileName string, fileSize int64) bool {
 
 	if os.IsNotExist(err) {
 		infoMess = fmt.Sprintf("Detect file %s doesn't exist.", absFileName)
-		Log("DEBUG", infoMess)
+		Logger.Debug(infoMess)
 		return false
 	}
 
 	// 非 NotExist 的其他错误（如权限问题），info 可能为 nil，直接返回避免解引用 panic
 	if err != nil {
 		infoMess = fmt.Sprintf("Error in stat file %s. [error = %v]", absFileName, err)
-		Log("WARN", infoMess)
+		Logger.Warn(infoMess)
 		return false
 	}
 
 	if fileSize == info.Size() {
 		infoMess = fmt.Sprintf("The package has already exist [fileName = %v, fileSize = %v, fileModTime = %v]", info.Name(), info.Size(), info.ModTime())
-		Log("INFO", infoMess)
+		Logger.Info(infoMess)
 		return true
 	}
 
 	del := os.Remove(absFileName)
 	if del != nil {
 		infoMess = fmt.Sprintf("Delete file %s", absFileName)
-		Log("WARN", infoMess)
+		Logger.Warn(infoMess)
 	}
 
 	return false
@@ -51,7 +51,7 @@ func DownloadFile(fileUrl string, localPath string, fileName string) {
 	resp, err := client.Get(fileUrl)
 	if err != nil {
 		infoMess = fmt.Sprintf("Error in get the response for %s", fileUrl)
-		Log("ERROR", infoMess)
+		Logger.Error(infoMess)
 		panic(err)
 	}
 	// resp 只有在 err == nil 时才非 nil，defer 必须放在 err 检查之后
@@ -60,7 +60,7 @@ func DownloadFile(fileUrl string, localPath string, fileName string) {
 	fileSize, err := strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 32)
 	if err != nil {
 		infoMess = fmt.Sprintf("Error in parsing the size for file %s", fileUrl)
-		Log("ERROR", infoMess)
+		Logger.Error(infoMess)
 	}
 
 	if IsFileExist(absFileName, fileSize) {
@@ -71,14 +71,14 @@ func DownloadFile(fileUrl string, localPath string, fileName string) {
 	tmpFile, err := os.Create(tmpFileName)
 	if err != nil {
 		infoMess = fmt.Sprintf("Error in create the tmp file %s", tmpFileName)
-		Log("ERROR", infoMess)
+		Logger.Error(infoMess)
 		panic(err)
 	}
 	defer tmpFile.Close()
 
 	if resp.Body == nil {
-		Log("ERROR", "The download file Body is null.")
-		Log("ERROR", infoMess)
+		Logger.Error("The download file Body is null.")
+		Logger.Error(infoMess)
 		panic(err)
 	}
 
@@ -86,13 +86,13 @@ func DownloadFile(fileUrl string, localPath string, fileName string) {
 	info, err := os.Stat(tmpFileName)
 	if err != nil {
 		infoMess = fmt.Sprintf("Cannot get the tmp file stat [fileName = %s]", tmpFileName)
-		Log("ERROR", infoMess)
+		Logger.Error(infoMess)
 		panic(err)
 	}
 
 	if info.Size() != fileSize {
 		infoMess = fmt.Sprintf("Error in download, pls check your network connection.")
-		Log("ERROR", infoMess)
+		Logger.Error(infoMess)
 		panic(err)
 	}
 
@@ -101,6 +101,6 @@ func DownloadFile(fileUrl string, localPath string, fileName string) {
 	}
 
 	infoMess = fmt.Sprintf("The file %s [%d] download successfully", fileName, fileSize)
-	Log("INFO", infoMess)
+	Logger.Info(infoMess)
 
 }
