@@ -363,14 +363,14 @@ func (l *logger) Error(msg string) {
 }
 
 // Close 关闭日志器，排空队列后释放资源
-func (l *logger) Close() error {
-	l.rwMu.Lock()
-	defer l.rwMu.Unlock()
-
+func (l *logger) Close() (err error) {
 	if l.closed {
 		return nil
 	}
 	l.closed = true
+
+	l.rwMu.Lock()
+	defer l.rwMu.Unlock()
 
 	// 停止文件写协程并关闭文件
 	if l.cfg.EnableFile {
@@ -379,14 +379,14 @@ func (l *logger) Close() error {
 
 		l.fileMu.Lock()
 		if l.file != nil {
-			_ = l.file.Close()
+			err = l.file.Close()
 			l.file = nil
 		}
 		l.fileMu.Unlock()
 	}
 
 	close(l.queue)
-	return nil
+	return err
 }
 
 // ===== 包级单例 =====
@@ -437,7 +437,7 @@ func DefaultLogConfig() LogConfig {
 		EnableFile:    true,
 		FileLevel:     LevelDebug,
 		Dir:           DefaultLogDir(),
-		MaxAgeDays:    7,
+		MaxAgeDays:    31,
 	}
 }
 
