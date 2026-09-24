@@ -119,19 +119,21 @@ func (l *logger) openFileLocked() error {
 // 不支持热更 FilePath、Dir、MaxAgeDays，如需修改请先关闭文件日志再重新开启
 func (l *logger) UpdateConfig(newCfg LogConfig) error {
 	l.rwMu.Lock()
-	defer l.rwMu.Unlock()
-
 	if l.closed {
+		l.rwMu.Unlock()
 		return errors.New("logger is closed")
 	}
 
 	oldCfg := l.cfg
 	l.cfg = newCfg
+	l.rwMu.Unlock()
 
 	// 处理文件日志开关状态变化
 	switch {
 	case oldCfg.EnableFile && !newCfg.EnableFile:
 		// 开启 -> 关闭：发停止信号，等待队列排空，关闭文件
+		// wg.Wait() 必须在 rwMu 锁外执行，否则 fileWriterLoop 在
+		// writeEntryToFile 中申请 RLock 会与写锁互锁，导致死锁。
 		close(l.fileStop)
 		l.wg.Wait()
 
@@ -144,10 +146,13 @@ func (l *logger) UpdateConfig(newCfg LogConfig) error {
 
 	case !oldCfg.EnableFile && newCfg.EnableFile:
 		// 关闭 -> 开启：打开文件，启动写协程
+		l.rwMu.Lock()
 		if err := l.openFileLocked(); err != nil {
 			l.cfg = oldCfg // 失败回滚配置
+			l.rwMu.Unlock()
 			return fmt.Errorf("open log file failed: %w", err)
 		}
+		l.rwMu.Unlock()
 		l.fileStop = make(chan struct{})
 		l.wg.Add(1)
 		go l.fileWriterLoop()
@@ -364,16 +369,17 @@ func (l *logger) Error(msg string) {
 
 // Close 关闭日志器，排空队列后释放资源
 func (l *logger) Close() (err error) {
+	l.rwMu.Lock()
 	if l.closed {
+		l.rwMu.Unlock()
 		return nil
 	}
 	l.closed = true
-
-	l.rwMu.Lock()
-	defer l.rwMu.Unlock()
+	enableFile := l.cfg.EnableFile
+	l.rwMu.Unlock()
 
 	// 停止文件写协程并关闭文件
-	if l.cfg.EnableFile {
+	if enableFile {
 		close(l.fileStop)
 		l.wg.Wait()
 

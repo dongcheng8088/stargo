@@ -52,7 +52,7 @@ func IsPortUsedTcpOnly(port uint32) (used bool, err error) {
 // 若输出中存在数据行（非表头）则表示该端口已被占用（监听或已建立连接）。
 //
 // 参数 sshPort 为远程 SSH 服务端口，targetPort 为待检查的业务端口。
-func IsRemotePortUsed(user, keyFile, host string, sshPort int, targetPort uint32) (used bool, err error) {
+func IsRemotePortUsed(user, keyFile, host string, sshPort uint32, targetPort uint32) (used bool, err error) {
 	// ss -tun 列出所有 TCP/UDP 连接（含监听与已建立）；sport = :PORT 过滤源端口
 	cmd := fmt.Sprintf("ss -tun sport = :%d", targetPort)
 	output, err := SshRun(user, keyFile, host, sshPort, cmd)

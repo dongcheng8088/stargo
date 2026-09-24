@@ -1,115 +1,107 @@
 package prepareOption
 
-import(
-    "fmt"
-    "strings"
-    "stargo/module"
-    "stargo/sr-utl"
+import (
+	"fmt"
+	"stargo/module"
+	utl "stargo/sr-utl"
+	"strings"
 )
-
 
 func DistributeSrDir() {
 
-    var infoMess string
+	var infoMess string
 
-    infoMess = "Distribute FE Dir ..."
-    utl.Logger.Info(infoMess)
-    DistributeFeDir()
+	infoMess = "Distribute FE Dir ..."
+	utl.Logger.Info(infoMess)
+	DistributeFeDir()
 
-    infoMess = "Distribute BE Dir ..."
-    utl.Logger.Info(infoMess)
-    DistributeBeDir()
+	infoMess = "Distribute BE Dir ..."
+	utl.Logger.Info(infoMess)
+	DistributeBeDir()
 
-    //module.WriteBackMeta(module.GYamlConf, module.GWriteBackMetaPath)
+	//module.WriteBackMeta(module.GYamlConf, module.GWriteBackMetaPath)
 
 }
 
 func DistributeFeDir() {
 
-    var infoMess string
-    // scp -r -P 22 -i rsaKey sourceDir root@nd1:targetDir
-    // distribute FE folder
-    for i := 0; i < len(module.GYamlConf.FeServers); i++ {
+	var infoMess string
+	// scp -r -P 22 -i rsaKey sourceDir root@nd1:targetDir
+	// distribute FE folder
+	for i := 0; i < len(module.GConfigInfo.FeServers); i++ {
 
-        sshUser := module.GYamlConf.Global.User
-        rsaKey := module.GSshKeyRsa
-        sshPort := module.GYamlConf.FeServers[i].SshPort
-        sshHost := module.GYamlConf.FeServers[i].Host
+		sshUser := module.GConfigInfo.Global.User
+		rsaKey := module.GSshPrivateKey
+		sshPort := module.GConfigInfo.FeServers[i].SshPort
+		sshHost := module.GConfigInfo.FeServers[i].Host
 
-        //utl.UploadDir(user string, keyFile string, host string, port int, sourceDir string, targetDir string)
-        // upload fe dir
-        feSourceDir := fmt.Sprintf("%s/StarRocks-%s/fe", module.GDownloadPath, strings.Replace(module.GSRVersion, "v", "", -1))
-        // feSourceDir := fmt.Sprintf("%s/download/StarRocks-%s/fe", module.GSRCtlRoot, strings.Replace(module.GSRVersion, "v", "", -1))
-        feTargetDir := module.GYamlConf.FeServers[i].DeployDir
-        utl.UploadDir(sshUser, rsaKey, sshHost, sshPort, feSourceDir, feTargetDir)
-        infoMess = fmt.Sprintf("Upload dir feSourceDir = [%s] to feTargetDir = [%s] on FeHost = [%s]", feSourceDir, feTargetDir, sshHost)
-        utl.Logger.Info(infoMess)
+		//utl.UploadDir(user string, keyFile string, host string, port int, sourceDir string, targetDir string)
+		// upload fe dir
+		feSourceDir := fmt.Sprintf("%s/StarRocks-%s/fe", module.GDownloadPath, strings.Replace(module.GSRVersion, "v", "", -1))
+		// feSourceDir := fmt.Sprintf("%s/download/StarRocks-%s/fe", module.GSRCtlRoot, strings.Replace(module.GSRVersion, "v", "", -1))
+		feTargetDir := module.GConfigInfo.FeServers[i].DeployDir
+		utl.UploadDir(sshUser, rsaKey, sshHost, sshPort, feSourceDir, feTargetDir)
+		infoMess = fmt.Sprintf("Upload dir feSourceDir = [%s] to feTargetDir = [%s] on FeHost = [%s]", feSourceDir, feTargetDir, sshHost)
+		utl.Logger.Info(infoMess)
 
-        // upload jdk dir
-        jdkSourceDir := fmt.Sprintf("%s/jdk1.8.0_301", module.GDownloadPath)
-        // jdkSourceDir := fmt.Sprintf("%s/download/jdk1.8.0_301", module.GSRCtlRoot)
-        jdkTargetDir := fmt.Sprintf("%s/jdk", module.GYamlConf.FeServers[i].DeployDir)
-        utl.UploadDir(sshUser, rsaKey, sshHost, sshPort, jdkSourceDir, jdkTargetDir)
-        infoMess = fmt.Sprintf("Upload dir JDKSourceDir = [%s] to JDKTargetDir = [%s] on FeHost = [%s]", jdkSourceDir, jdkTargetDir, sshHost)
-        utl.Logger.Info(infoMess)
+		// upload jdk dir
+		jdkSourceDir := fmt.Sprintf("%s/jdk1.8.0_301", module.GDownloadPath)
+		// jdkSourceDir := fmt.Sprintf("%s/download/jdk1.8.0_301", module.GSRCtlRoot)
+		jdkTargetDir := fmt.Sprintf("%s/jdk", module.GConfigInfo.FeServers[i].DeployDir)
+		utl.UploadDir(sshUser, rsaKey, sshHost, sshPort, jdkSourceDir, jdkTargetDir)
+		infoMess = fmt.Sprintf("Upload dir JDKSourceDir = [%s] to JDKTargetDir = [%s] on FeHost = [%s]", jdkSourceDir, jdkTargetDir, sshHost)
+		utl.Logger.Info(infoMess)
 
+		// modify JAVA_HOME
+		startFeFilePath := fmt.Sprintf("%s/bin/start_fe.sh", module.GConfigInfo.FeServers[i].DeployDir)
+		jdkPath := fmt.Sprintf("%s/jdk", module.GConfigInfo.FeServers[i].DeployDir)
+		modifyJavaHome(sshUser, rsaKey, sshHost, sshPort, startFeFilePath, jdkPath)
+		infoMess = fmt.Sprintf("Modify JAVA_HOME: host = [%s], filePath = [%s]", sshHost, startFeFilePath)
+		utl.Logger.Info(infoMess)
 
-        // modify JAVA_HOME
-        startFeFilePath := fmt.Sprintf("%s/bin/start_fe.sh", module.GYamlConf.FeServers[i].DeployDir)
-        jdkPath := fmt.Sprintf("%s/jdk", module.GYamlConf.FeServers[i].DeployDir)
-        modifyJavaHome(sshUser, rsaKey, sshHost, sshPort, startFeFilePath, jdkPath)
-        infoMess = fmt.Sprintf("Modify JAVA_HOME: host = [%s], filePath = [%s]", sshHost, startFeFilePath)
-        utl.Logger.Info(infoMess)
-
-    }
+	}
 
 }
-
-
-
 
 func DistributeBeDir() {
 
-    var infoMess string
-    // scp -r -P 22 -i rsaKey sourceDir root@nd1:targetDir
-    // distribute FE folder
-    for i := 0; i < len(module.GYamlConf.BeServers); i++ {
+	var infoMess string
+	// scp -r -P 22 -i rsaKey sourceDir root@nd1:targetDir
+	// distribute FE folder
+	for i := 0; i < len(module.GConfigInfo.BeServers); i++ {
 
-	sshUser := module.GYamlConf.Global.User
-	rsaKey := module.GSshKeyRsa
-	sshPort := module.GYamlConf.BeServers[i].SshPort
-	sshHost := module.GYamlConf.BeServers[i].Host
-        beSourceDir := fmt.Sprintf("%s/StarRocks-%s/be", module.GDownloadPath, strings.Replace(module.GSRVersion, "v", "", -1))
-	// beSourceDir := fmt.Sprintf("%s/download/StarRocks-%s/be", module.GSRCtlRoot, strings.Replace(module.GSRVersion, "v", "", -1))
-	beTargetDir := module.GYamlConf.BeServers[i].DeployDir
+		sshUser := module.GConfigInfo.Global.User
+		rsaKey := module.GSshPrivateKey
+		sshPort := module.GConfigInfo.BeServers[i].SshPort
+		sshHost := module.GConfigInfo.BeServers[i].Host
+		beSourceDir := fmt.Sprintf("%s/StarRocks-%s/be", module.GDownloadPath, strings.Replace(module.GSRVersion, "v", "", -1))
+		// beSourceDir := fmt.Sprintf("%s/download/StarRocks-%s/be", module.GSRCtlRoot, strings.Replace(module.GSRVersion, "v", "", -1))
+		beTargetDir := module.GConfigInfo.BeServers[i].DeployDir
 
-	//utl.UploadDir(user string, keyFile string, host string, port int, sourceDir string, targetDir string)
-	utl.UploadDir(sshUser, rsaKey, sshHost, sshPort, beSourceDir, beTargetDir)
-	infoMess = fmt.Sprintf("Upload dir BeSourceDir = [%s] to BeTargetDir = [%s] on BeHost = [%s]", beSourceDir, beTargetDir, sshHost)
-	utl.Logger.Info(infoMess)
+		//utl.UploadDir(user string, keyFile string, host string, port int, sourceDir string, targetDir string)
+		utl.UploadDir(sshUser, rsaKey, sshHost, sshPort, beSourceDir, beTargetDir)
+		infoMess = fmt.Sprintf("Upload dir BeSourceDir = [%s] to BeTargetDir = [%s] on BeHost = [%s]", beSourceDir, beTargetDir, sshHost)
+		utl.Logger.Info(infoMess)
 
-    }
-
-}
-
-
-func modifyJavaHome(sshUser string, rsaKey string, host string, sshPort int, startFeFilePath string, jdkFilePath string) {
-
-    var infoMess string
-    var cmd string
-    var err error
-
-    // filePath = module.GYamlConf.FeServers[i].DeployDir
-    // sed -i 's$# java$# java\nJAVA_HOME=module.GYamlConf.FeServers[i].DeployDir/fe/jdk1.8.0\n$g' filePath
-    cmd = fmt.Sprintf("sed -i 's$# java$# java\\nJAVA_HOME=%s\\n$g' %s", jdkFilePath, startFeFilePath)
-
-    _, err = utl.SshRun(sshUser, rsaKey, host, sshPort, cmd)
-    if err != nil {
-        infoMess = fmt.Sprintf("Error in modify JAVA_HOME. [FeHost = %s, cmd = %s, Error = %v]", host, cmd, err)
-        utl.Logger.Error(infoMess)
-        panic(err)
-    }
-
+	}
 
 }
 
+func modifyJavaHome(sshUser string, rsaKey string, host string, sshPort uint32, startFeFilePath string, jdkFilePath string) {
+
+	var infoMess string
+	var cmd string
+	var err error
+
+	// filePath = module.GYamlConf.FeServers[i].DeployDir
+	// sed -i 's$# java$# java\nJAVA_HOME=module.GYamlConf.FeServers[i].DeployDir/fe/jdk1.8.0\n$g' filePath
+	cmd = fmt.Sprintf("sed -i 's$# java$# java\\nJAVA_HOME=%s\\n$g' %s", jdkFilePath, startFeFilePath)
+
+	_, err = utl.SshRun(sshUser, rsaKey, host, sshPort, cmd)
+	if err != nil {
+		infoMess = fmt.Sprintf("Error in modify JAVA_HOME. [FeHost = %s, cmd = %s, Error = %v]", host, cmd, err)
+		utl.Logger.Error(infoMess)
+		panic(err)
+	}
+
+}

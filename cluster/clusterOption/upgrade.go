@@ -69,7 +69,7 @@ func Upgrade(clusterName string, clusterVersion string) {
 		os.Exit(1)
 	}
 
-	oldVersion := module.GYamlConf.ClusterInfo.Version
+	oldVersion := module.GConfigInfo.ClusterInfo.Version
 	newVersion := clusterVersion
 	if compareVersions(oldVersion, newVersion) >= 0 {
 		infoMess = fmt.Sprintf("OldVersion = %s  NewVersion = %s, the NewVersion is not higher than OldVersion", oldVersion, newVersion)
@@ -84,6 +84,6 @@ func Upgrade(clusterName string, clusterVersion string) {
 	upgradeCluster.UpgradeBeCluster()
 	upgradeCluster.UpgradeFeCluster()
 
-	module.WriteBackMeta(module.GYamlConf, module.GYamlConf.ClusterInfo.MetaPath)
+	module.WriteBackMeta(module.GConfigInfo, module.GConfigInfo.ClusterInfo.MetaPath)
 
 }

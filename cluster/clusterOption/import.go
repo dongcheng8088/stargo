@@ -46,13 +46,13 @@ func ImportCluster(clusterName string, metaFile string) {
 	}
 	module.SetFeEntry(feEntryId)
 
-	module.GYamlConf.ClusterInfo.User = module.GYamlConf.Global.User
-	module.GYamlConf.ClusterInfo.CreateDate = time.Unix(time.Now().Unix(), 0).Format("2006-01-02 15:04:05")
-	module.GYamlConf.ClusterInfo.MetaPath = module.GWriteBackMetaPath
-	module.GYamlConf.ClusterInfo.PrivateKey = module.GSshKeyRsa
+	module.GConfigInfo.ClusterInfo.User = module.GConfigInfo.Global.User
+	module.GConfigInfo.ClusterInfo.CreateDate = time.Unix(time.Now().Unix(), 0).Format("2006-01-02 15:04:05")
+	module.GConfigInfo.ClusterInfo.MetaPath = module.GWriteBackMetaPath
+	module.GConfigInfo.ClusterInfo.PrivateKey = module.GSshPrivateKey
 
 	importCluster.GetFeConf()
 	importCluster.GetBeConf()
 
-	module.WriteBackMeta(module.GYamlConf, module.GYamlConf.ClusterInfo.MetaPath)
+	module.WriteBackMeta(module.GConfigInfo, module.GConfigInfo.ClusterInfo.MetaPath)
 }

@@ -1,11 +1,11 @@
 {
   "global": {
-    "user": "starrocks",
+    "user": "root",
     "ssh_port": 22
   },
   "fe_servers": [
     {
-      "host": "192.168.88.83",
+      "host": "192.168.122.11",
       "ssh_port": 22,
       "http_port": 8030,
       "rpc_port": 9020,
@@ -21,7 +21,7 @@
       }
     },
     {
-      "host": "192.168.88.84",
+      "host": "192.168.122.12",
       "ssh_port": 22,
       "http_port": 8030,
       "rpc_port": 9020,
@@ -36,7 +36,7 @@
       }
     },
     {
-      "host": "192.168.88.85",
+      "host": "192.168.122.13",
       "ssh_port": 22,
       "http_port": 8030,
       "rpc_port": 9020,
@@ -53,7 +53,7 @@
   ],
   "be_servers": [
     {
-      "host": "192.168.88.83",
+      "host": "192.168.122.14",
       "ssh_port": 22,
       "be_port": 9060,
       "webserver_port": 8040,
@@ -68,7 +68,7 @@
       }
     },
     {
-      "host": "192.168.88.84",
+      "host": "192.168.122.15",
       "ssh_port": 22,
       "be_port": 9060,
       "webserver_port": 8040,
@@ -83,7 +83,7 @@
       }
     },
     {
-      "host": "192.168.88.85",
+      "host": "192.168.122.16",
       "ssh_port": 22,
       "be_port": 9060,
       "webserver_port": 8040,

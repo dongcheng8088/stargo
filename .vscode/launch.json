@@ -12,7 +12,8 @@
             "program": "${workspaceFolder}",
             "cwd": "${workspaceFolder}/bin",
             "console": "integratedTerminal",
-            "preLaunchTask": "同步配置到bin"
+            "preLaunchTask": "同步配置到bin",
+            "args": ["cluster", "deploy", "sr-c1", "v4.1.4", "sr-c1.json"]
         }
     ]
 }

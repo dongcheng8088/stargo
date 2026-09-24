@@ -6,7 +6,6 @@ import (
 	utl "stargo/sr-utl"
 	"strconv"
 	"strings"
-	//"database/sql"
 )
 
 /*
@@ -39,11 +38,11 @@ func CheckFePortStatus(feId int) (checkPortRes bool, err error) {
 
 	var infoMess string
 
-	tmpUser := module.GYamlConf.Global.User
-	tmpKeyRsa := module.GSshKeyRsa
-	tmpFeHost := module.GYamlConf.FeServers[feId].Host
-	tmpSshPort := module.GYamlConf.FeServers[feId].SshPort
-	tmpQueryPort := module.GYamlConf.FeServers[feId].QueryPort
+	tmpUser := module.GConfigInfo.Global.User
+	tmpKeyRsa := module.GSshPrivateKey
+	tmpFeHost := module.GConfigInfo.FeServers[feId].Host
+	tmpSshPort := module.GConfigInfo.FeServers[feId].SshPort
+	tmpQueryPort := module.GConfigInfo.FeServers[feId].QueryPort
 
 	// check Port stat by [netstat -nltp | grep 9030]
 	checkCMD := fmt.Sprintf("netstat -an | grep ':%d ' | grep -v ESTABLISHED", tmpQueryPort)
@@ -55,7 +54,7 @@ func CheckFePortStatus(feId int) (checkPortRes bool, err error) {
 		return false, err
 	}
 
-	if strings.Contains(string(output), ":"+strconv.Itoa(tmpQueryPort)) {
+	if strings.Contains(string(output), ":"+strconv.FormatUint(uint64(tmpQueryPort), 10)) {
 		infoMess = fmt.Sprintf("Check the fe query port %s:%d run successfully", tmpFeHost, tmpQueryPort)
 		utl.Logger.Debug(infoMess)
 		return true, nil
@@ -72,8 +71,8 @@ func GetFeStatJDBC(feId int) (feStat map[string]string, err error) {
 	//GJdbcPasswd = ""
 	//GJdbcDb = ""
 	queryCMD := "show frontends"
-	tmpFeHost := module.GYamlConf.FeServers[feId].Host
-	tmpQueryPort := module.GYamlConf.FeServers[feId].QueryPort
+	tmpFeHost := module.GConfigInfo.FeServers[feId].Host
+	tmpQueryPort := module.GConfigInfo.FeServers[feId].QueryPort
 
 	rows, err := utl.RunSQL(module.GJdbcUser, module.GJdbcPasswd, tmpFeHost, tmpQueryPort, module.GJdbcDb, queryCMD)
 	if err != nil {
@@ -105,8 +104,8 @@ func GetFeStatJDBC(feId int) (feStat map[string]string, err error) {
 			feStatus[columns[i]] = fmt.Sprintf("%s", *data.(*interface{}))
 		}
 
-		queryPort, _ := strconv.Atoi(feStatus["QueryPort"])
-		if feStatus["IP"] == tmpFeHost && queryPort == tmpQueryPort {
+		queryPort, _ := strconv.ParseUint(feStatus["QueryPort"], 10, 32)
+		if feStatus["IP"] == tmpFeHost && uint32(queryPort) == tmpQueryPort {
 			//GFeStatusArr[feId] = feStat
 			return feStatus, nil
 		}

@@ -14,7 +14,7 @@ func InitPlaygroundConf() {
 	var tmp module.ConfStruct
 
 	osUser, _ := user.Current()
-	module.GSshKeyRsa = fmt.Sprintf("%s/.ssh/id_rsa", osUser.HomeDir)
+	module.GSshPrivateKey = fmt.Sprintf("%s/.ssh/id_rsa", osUser.HomeDir)
 	module.GSRCtlRoot = os.Getenv("SRCTLROOT")
 	if module.GSRCtlRoot == "" {
 		module.GSRCtlRoot = fmt.Sprintf("%s/.stargo", osUser.HomeDir)
@@ -26,7 +26,7 @@ func InitPlaygroundConf() {
 	tmp.ClusterInfo.Version = "2.2.0"
 	tmp.ClusterInfo.CreateDate = time.Unix(time.Now().Unix(), 0).Format("2006-01-02 15:04:05")
 	tmp.ClusterInfo.MetaPath = fmt.Sprintf("%s/cluster/sr-playground", module.GSRCtlRoot)
-	tmp.ClusterInfo.PrivateKey = module.GSshKeyRsa
+	tmp.ClusterInfo.PrivateKey = module.GSshPrivateKey
 
 	tmp.Global.User = osUser.Username
 	tmp.Global.SshPort = 22
@@ -34,11 +34,11 @@ func InitPlaygroundConf() {
 	tmp.FeServers = append(tmp.FeServers,
 		struct {
 			Host             string            `json:"host"`
-			SshPort          int               `json:"ssh_port"`
-			HttpPort         int               `json:"http_port"`
-			RpcPort          int               `json:"rpc_port"`
-			QueryPort        int               `json:"query_port"`
-			EditLogPort      int               `json:"edit_log_port"`
+			SshPort          uint32            `json:"ssh_port"`
+			HttpPort         uint32            `json:"http_port"`
+			RpcPort          uint32            `json:"rpc_port"`
+			QueryPort        uint32            `json:"query_port"`
+			EditLogPort      uint32            `json:"edit_log_port"`
 			DeployDir        string            `json:"deploy_dir"`
 			MetaDir          string            `json:"meta_dir"`
 			LogDir           string            `json:"log_dir"`
@@ -61,11 +61,11 @@ func InitPlaygroundConf() {
 	tmp.BeServers = append(tmp.BeServers,
 		struct {
 			Host                 string            `json:"host"`
-			SshPort              int               `json:"ssh_port"`
-			BePort               int               `json:"be_port"`
-			WebServerPort        int               `json:"webserver_port"`
-			HeartbeatServicePort int               `json:"heartbeat_service_port"`
-			BrpcPort             int               `json:"brpc_port"`
+			SshPort              uint32            `json:"ssh_port"`
+			BePort               uint32            `json:"be_port"`
+			WebServerPort        uint32            `json:"webserver_port"`
+			HeartbeatServicePort uint32            `json:"heartbeat_service_port"`
+			BrpcPort             uint32            `json:"brpc_port"`
 			DeployDir            string            `json:"deploy_dir"`
 			StorageDir           string            `json:"storage_dir"`
 			LogDir               string            `json:"log_dir"`
@@ -85,6 +85,6 @@ func InitPlaygroundConf() {
 			Config:               nil,
 		})
 
-	module.GYamlConf = &tmp
-	module.GSRVersion = "v" + module.GYamlConf.ClusterInfo.Version
+	module.GConfigInfo = &tmp
+	module.GSRVersion = "v" + module.GConfigInfo.ClusterInfo.Version
 }

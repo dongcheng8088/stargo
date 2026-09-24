@@ -1,114 +1,107 @@
-
 package startCluster
 
-import(
-    "fmt"
-    "time"
-    "errors"
-    "stargo/sr-utl"
-    "stargo/module"
-    "stargo/cluster/checkStatus"
+import (
+	"errors"
+	"fmt"
+	"stargo/cluster/checkStatus"
+	"stargo/module"
+	utl "stargo/sr-utl"
+	"time"
 )
-
-
-
 
 func InitBeCluster(yamlConf *module.ConfStruct) {
 
-    var infoMess string
-    var err error
-    var beStat map[string]string
+	var infoMess string
+	var err error
+	var beStat map[string]string
 
-    // start Fe node one by one
-    var tmpUser string
-    var tmpKeyRsa string
-    var tmpSshHost string
-    var tmpSshPort int
-    var tmpHeartbeatServicePort int
-    var tmpBeDeployDir string
-    var beStatusList string
-    // var tmpFeEntryHost string
-    // var tmpFeEntryPort int
-    tmpUser = module.GYamlConf.Global.User
-    tmpKeyRsa = module.GSshKeyRsa
+	// start Fe node one by one
+	var tmpUser string
+	var tmpKeyRsa string
+	var tmpSshHost string
+	var tmpSshPort uint32
+	var tmpHeartbeatServicePort uint32
+	var tmpBeDeployDir string
+	var beStatusList string
+	// var tmpFeEntryHost string
+	// var tmpFeEntryPort int
+	tmpUser = module.GConfigInfo.Global.User
+	tmpKeyRsa = module.GSshPrivateKey
 
-    // get FE entry
-    feEntryId, err := checkStatus.GetFeEntry(-1)
-    //tmpFeEntryHost = yamlConf.FeServers[feEntryId].Host
-    //tmpFeEntryPort = yamlConf.FeServers[feEntryId].QueryPort
-    module.SetFeEntry(feEntryId)
-    if err != nil || feEntryId == -1 {
-        infoMess = "Error in get the FE entry, pls check FE status."
-	utl.Logger.Error(infoMess)
-	err = errors.New(infoMess)
-	panic(err)
-    }
+	// get FE entry
+	feEntryId, err := checkStatus.GetFeEntry(-1)
+	//tmpFeEntryHost = yamlConf.FeServers[feEntryId].Host
+	//tmpFeEntryPort = yamlConf.FeServers[feEntryId].QueryPort
+	module.SetFeEntry(feEntryId)
+	if err != nil || feEntryId == -1 {
+		infoMess = "Error in get the FE entry, pls check FE status."
+		utl.Logger.Error(infoMess)
+		err = errors.New(infoMess)
+		panic(err)
+	}
 
+	for i := 0; i < len(module.GConfigInfo.BeServers); i++ {
 
+		tmpSshHost = module.GConfigInfo.BeServers[i].Host
+		tmpSshPort = module.GConfigInfo.BeServers[i].SshPort
+		tmpHeartbeatServicePort = module.GConfigInfo.BeServers[i].HeartbeatServicePort
+		tmpBeDeployDir = module.GConfigInfo.BeServers[i].DeployDir
 
-    for i := 0; i < len(yamlConf.BeServers); i++ {
+		infoMess = fmt.Sprintf("Starting BE node [BeHost = %s HeartbeatServicePort = %d]", tmpSshHost, tmpHeartbeatServicePort)
+		utl.Logger.Info(infoMess)
 
-        tmpSshHost = yamlConf.BeServers[i].Host
-        tmpSshPort = yamlConf.BeServers[i].SshPort
-        tmpHeartbeatServicePort = yamlConf.BeServers[i].HeartbeatServicePort
-        tmpBeDeployDir = yamlConf.BeServers[i].DeployDir
+		for startTimeInd := 0; startTimeInd < 3; startTimeInd++ {
 
-	infoMess = fmt.Sprintf("Starting BE node [BeHost = %s HeartbeatServicePort = %d]", tmpSshHost, tmpHeartbeatServicePort)
-        utl.Logger.Info(infoMess)
+			infoMess = fmt.Sprintf("The %d time to start [%s]", (startTimeInd + 1), tmpSshHost)
+			utl.Logger.Debug(infoMess)
+			// startBeNode(user string, keyRsa string, sshHost string, sshPort int, heartbeatServicePort int, beDeployDir string) (err error)
+			err = initBeNode(tmpUser, tmpKeyRsa, tmpSshHost, tmpSshPort, tmpHeartbeatServicePort, tmpBeDeployDir)
 
-	for startTimeInd := 0; startTimeInd < 3; startTimeInd++ {
+			startWaitTime := time.Duration(20 - startTimeInd*5)
+			// the be process need 20s to startup
+			time.Sleep(startWaitTime * time.Second)
 
-	    infoMess = fmt.Sprintf("The %d time to start [%s]",(startTimeInd + 1), tmpSshHost)
-            utl.Logger.Debug(infoMess)
-	    // startBeNode(user string, keyRsa string, sshHost string, sshPort int, heartbeatServicePort int, beDeployDir string) (err error)
-	    err = initBeNode(tmpUser, tmpKeyRsa, tmpSshHost, tmpSshPort, tmpHeartbeatServicePort, tmpBeDeployDir)
+			beStat, _ = checkStatus.CheckBeStatus(i)
+			if beStat["Alive"] == "true" {
+				infoMess = fmt.Sprintf("The BE node start succefully [host = %s, heartbeatServicePort = %d]", tmpSshHost, tmpHeartbeatServicePort)
+				utl.Logger.Info(infoMess)
+				break
+			} else {
+				infoMess = fmt.Sprintf("The BE node doesn't start, wait for 10s [BeHost = %s, HeartbeatServicePort = %d, error = %v]", tmpSshHost, tmpHeartbeatServicePort, err)
+				utl.Logger.Warn(infoMess)
+			}
+		} // FOR-END: 3 time to restart BE node
 
-	    startWaitTime := time.Duration(20 - startTimeInd * 5)
-	    // the be process need 20s to startup
-	    time.Sleep(startWaitTime  * time.Second)
+		if beStat["Alive"] == "false" {
+			infoMess = fmt.Sprintf("The BE node start failed [BeHost = %s, HeartbeatServicePort = %d, error = %v]", tmpSshHost, tmpHeartbeatServicePort, err)
+		}
 
-            beStat, _ = checkStatus.CheckBeStatus(i)
-            if beStat["Alive"] == "true" {
-                infoMess = fmt.Sprintf("The BE node start succefully [host = %s, heartbeatServicePort = %d]", tmpSshHost, tmpHeartbeatServicePort)
-                utl.Logger.Info(infoMess)
-                break
-            } else {
-                infoMess = fmt.Sprintf("The BE node doesn't start, wait for 10s [BeHost = %s, HeartbeatServicePort = %d, error = %v]", tmpSshHost, tmpHeartbeatServicePort, err)
-                utl.Logger.Warn(infoMess)
-            }
-        } // FOR-END: 3 time to restart BE node
-
-	if beStat["Alive"] == "false" {
-             infoMess = fmt.Sprintf("The BE node start failed [BeHost = %s, HeartbeatServicePort = %d, error = %v]", tmpSshHost, tmpHeartbeatServicePort, err)
-        }
-
-	beStatusList = beStatusList + "                                        " + fmt.Sprintf("beHost = %-20sbeHeartbeatServicePort = %d\tbeStatus = %v\n", tmpSshHost, tmpHeartbeatServicePort, beStat["Alive"])
-    }
-    beStatusList = "List all BE status:\n" + beStatusList
-    utl.Logger.Info(beStatusList)
+		beStatusList = beStatusList + "                                        " + fmt.Sprintf("beHost = %-20sbeHeartbeatServicePort = %d\tbeStatus = %v\n", tmpSshHost, tmpHeartbeatServicePort, beStat["Alive"])
+	}
+	beStatusList = "List all BE status:\n" + beStatusList
+	utl.Logger.Info(beStatusList)
 }
 
-func initBeNode(user string, keyRsa string, sshHost string, sshPort int, heartbeatServicePort int, beDeployDir string) (err error) {
+func initBeNode(user string, keyRsa string, sshHost string, sshPort uint32, heartbeatServicePort uint32, beDeployDir string) (err error) {
 
-    var infoMess string
+	var infoMess string
 
+	addBeSQL := fmt.Sprintf("alter system add backend \"%s:%d\"", sshHost, heartbeatServicePort)
+	addBeCMD := fmt.Sprintf("%s/bin/start_be.sh --daemon", beDeployDir)
 
-    addBeSQL := fmt.Sprintf("alter system add backend \"%s:%d\"", sshHost, heartbeatServicePort)
-    addBeCMD := fmt.Sprintf("%s/bin/start_be.sh --daemon", beDeployDir)
+	//infoMess = fmt.Sprintf("Starting BE node [host = %s, heartbeatServicePort = %d]", sshHost, heartbeatServicePort)
+	//utl.Logger.Info(infoMess)
 
-    //infoMess = fmt.Sprintf("Starting BE node [host = %s, heartbeatServicePort = %d]", sshHost, heartbeatServicePort)
-    //utl.Logger.Info(infoMess)
+	// alter system add backend "sshHost:heartbeatServicePort"
+	sqlUserName := "root"
+	sqlPassword := ""
+	sqlIp := module.GFeEntryHost
+	sqlPort := module.GFeEntryQueryPort
+	sqlDbName := ""
 
-    // alter system add backend "sshHost:heartbeatServicePort"
-    sqlUserName := "root"
-    sqlPassword := ""
-    sqlIp := module.GFeEntryHost
-    sqlPort := module.GFeEntryQueryPort
-    sqlDbName := ""
-
-    _, err = utl.RunSQL(sqlUserName, sqlPassword, sqlIp, sqlPort, sqlDbName, addBeSQL)
-    if err != nil {
-        infoMess = fmt.Sprintf(`Error in add follower BE node, [
+	_, err = utl.RunSQL(sqlUserName, sqlPassword, sqlIp, sqlPort, sqlDbName, addBeSQL)
+	if err != nil {
+		infoMess = fmt.Sprintf(`Error in add follower BE node, [
                                         sqlUserName = %s
                                         sqlPassword = %s
                                         sqlIP = %s
@@ -116,25 +109,25 @@ func initBeNode(user string, keyRsa string, sshHost string, sshPort int, heartbe
                                         sqlDBName = %s
                                         addFollowerSQL =%s
                                         errMess = %v]`, sqlUserName, sqlPassword, sqlIp, sqlPort, sqlDbName, addBeSQL, err)
-        utl.Logger.Error(infoMess)
-        return err
-    }
+		utl.Logger.Error(infoMess)
+		return err
+	}
 
-    // run beDeploy/bin/start_be.sh --daemon 
-    _, err = utl.SshRun(user, keyRsa, sshHost, sshPort, addBeCMD)
-    if err != nil {
-        infoMess = fmt.Sprintf(`Waiting for startMastertFeNode:
+	// run beDeploy/bin/start_be.sh --daemon
+	_, err = utl.SshRun(user, keyRsa, sshHost, sshPort, addBeCMD)
+	if err != nil {
+		infoMess = fmt.Sprintf(`Waiting for startMastertFeNode:
                                         user = %s
                                         keyRsa = %s
                                         sshHost = %s
                                         sshPort = %d
                                         beDeployDir = %s`,
-                user, keyRsa, sshHost, sshPort, beDeployDir)
-        utl.Logger.Warn(infoMess)
-        return err
-    }
+			user, keyRsa, sshHost, sshPort, beDeployDir)
+		utl.Logger.Warn(infoMess)
+		return err
+	}
 
-    // time.Sleep(5 * time.Second)
-    return nil
+	// time.Sleep(5 * time.Second)
+	return nil
 
 }
