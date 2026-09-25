@@ -39,7 +39,7 @@ func CheckFePortStatus(feId int) (checkPortRes bool, err error) {
 	var infoMess string
 
 	tmpUser := module.GConfigInfo.Global.User
-	tmpKeyRsa := module.GSshPrivateKey
+	tmpKeyRsa := module.GSshPrivateKeyFilePath
 	tmpFeHost := module.GConfigInfo.FeServers[feId].Host
 	tmpSshPort := module.GConfigInfo.FeServers[feId].SshPort
 	tmpQueryPort := module.GConfigInfo.FeServers[feId].QueryPort

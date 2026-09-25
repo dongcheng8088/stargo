@@ -40,7 +40,7 @@ func ModifyClusterConfig() {
 	//var tmpConfigKey string
 	//var tmpConfigValue string
 	var tmpUser string = module.GConfigInfo.Global.User
-	var tmpKeyFile string = module.GSshPrivateKey
+	var tmpKeyFile string = module.GSshPrivateKeyFilePath
 	var configMap map[string]string
 
 	infoMess = "Modify configuration for FE nodes & BE nodes ..."

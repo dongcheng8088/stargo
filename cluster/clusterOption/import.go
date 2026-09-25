@@ -49,7 +49,7 @@ func ImportCluster(clusterName string, metaFile string) {
 	module.GConfigInfo.ClusterInfo.User = module.GConfigInfo.Global.User
 	module.GConfigInfo.ClusterInfo.CreateDate = time.Unix(time.Now().Unix(), 0).Format("2006-01-02 15:04:05")
 	module.GConfigInfo.ClusterInfo.MetaPath = module.GWriteBackMetaPath
-	module.GConfigInfo.ClusterInfo.PrivateKey = module.GSshPrivateKey
+	module.GConfigInfo.ClusterInfo.PrivateKey = module.GSshPrivateKeyFilePath
 
 	importCluster.GetFeConf()
 	importCluster.GetBeConf()

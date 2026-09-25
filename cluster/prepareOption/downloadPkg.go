@@ -28,15 +28,13 @@ func GetDownloadUrl(srVersion string) (downloadUrl string) {
 	var infoMess string
 	var repoUrl string
 
-	module.GetRepo()
-
 	// deal with
-	if strings.Contains(module.GRepo.Repo, "file://") {
+	if strings.Contains(module.GlobalSettings.Repo, "file://") {
 		downloadUrl = ""
 		return downloadUrl
 	}
 
-	repoUrl = module.GRepo.Repo + "/packageVersion.list"
+	repoUrl = module.GlobalSettings.Repo + "/packageVersion.list"
 	res, err := http.Get(repoUrl)
 	if err != nil {
 		infoMess = fmt.Sprintf("Error in create http get request when download the repo list. [error = %v]", err)
@@ -83,11 +81,11 @@ func DownloadSRPkg() {
 	// fmt.Sprintf("http://192.168.88.89:9000/starrocks-quick-start/starrocks-%s-quickstart.tar.gz", strings.Replace(module.GSRVersion, "v", "", -1))
 
 	var infoMess string
-	pkgUrl := GetDownloadUrl(module.GSRVersion)
+	pkgUrl := GetDownloadUrl(module.GlobalSettings.SrVersion)
 
 	// downloadPath := module.GSRCtlRoot + "/download"
 	if pkgUrl != "" {
-		downloadFile := fmt.Sprintf("starrocks-%s-quickstart.tar.gz", strings.Replace(module.GSRVersion, "v", "", -1))
+		downloadFile := fmt.Sprintf("starrocks-%s-quickstart.tar.gz", strings.Replace(module.GlobalSettings.SrVersion, "v", "", -1))
 		utl.DownloadFile(pkgUrl, module.GDownloadPath, downloadFile)
 		infoMess = fmt.Sprintf("Download done.")
 		utl.Logger.Info(infoMess)
@@ -100,7 +98,7 @@ func DecompressSRPkg() {
 	var infoMess string
 
 	// Decompress SR & JDK union pakcage
-	tarFileName = fmt.Sprintf("%s/starrocks-%s-quickstart.tar.gz", module.GDownloadPath, strings.Replace(module.GSRVersion, "v", "", -1))
+	tarFileName = fmt.Sprintf("%s/starrocks-%s-quickstart.tar.gz", module.GDownloadPath, strings.Replace(module.GlobalSettings.SrVersion, "v", "", -1))
 	//tarFileName = module.GSRCtlRoot + fmt.Sprintf("/download/starrocks-%s-quickstart.tar.gz", strings.Replace(module.GSRVersion, "v", "", -1))
 	// destFilePath = module.GSRCtlRoot + "/download"
 	destFilePath = module.GDownloadPath
@@ -109,7 +107,7 @@ func DecompressSRPkg() {
 	utl.Logger.Info(infoMess)
 
 	// Decompress StarRocks Package
-	tarFileName = fmt.Sprintf("%s/StarRocks-%s.tar.gz", module.GDownloadPath, strings.Replace(module.GSRVersion, "v", "", -1))
+	tarFileName = fmt.Sprintf("%s/StarRocks-%s.tar.gz", module.GDownloadPath, strings.Replace(module.GlobalSettings.SrVersion, "v", "", -1))
 	// tarFileName = module.GSRCtlRoot + fmt.Sprintf("/download/StarRocks-%s.tar.gz", strings.Replace(module.GSRVersion, "v", "", -1))
 	// destFilePath = module.GSRCtlRoot + "/download"
 	destFilePath = module.GDownloadPath

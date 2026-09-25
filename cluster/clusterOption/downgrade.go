@@ -16,7 +16,7 @@ func Downgrade(clusterName string, clusterVersion string) {
 	//var err                error
 
 	module.InitConf(clusterName, "")
-	module.SetGlobalVar("GSRVersion", clusterVersion)
+	module.SetSrVersion(clusterVersion)
 
 	if checkStatus.CheckClusterName(clusterName) {
 		infoMess = "Don't find the Cluster " + clusterName

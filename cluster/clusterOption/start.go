@@ -22,7 +22,7 @@ func Start(clusterName string, nodeId string, role string) {
 	module.InitConf(clusterName, "")
 
 	tmpUser = module.GConfigInfo.Global.User
-	tmpKeyRsa = module.GSshPrivateKey
+	tmpKeyRsa = module.GSshPrivateKeyFilePath
 
 	if checkStatus.CheckClusterName(clusterName) {
 		infoMess = "Don't find the Cluster " + clusterName
@@ -44,13 +44,13 @@ func Start(clusterName string, nodeId string, role string) {
 	//  |  3         | !null      |  null     |  start the FE/BE node (BE only)                 |
 	//  |  4         | !null      |  !null    |  error                                          |
 	//  -----------------------------------------------------------------------------------------
-	if nodeId == module.NULLSTR && role == module.NULLSTR {
+	if nodeId == module.EMPTYSTR && role == module.EMPTYSTR {
 		// case id 1: - start all cluster: sr-ctl-cluster start sr-c1
 		startCluster.StartFeCluster()
 		startCluster.StartBeCluster()
 	} // end of case 1
 
-	if nodeId == module.NULLSTR && role != module.NULLSTR {
+	if nodeId == module.EMPTYSTR && role != module.EMPTYSTR {
 		// case id 2: start FE or BE cluster
 		if role == "FE" {
 			infoMess = "Starting FE cluster ...."
@@ -66,7 +66,7 @@ func Start(clusterName string, nodeId string, role string) {
 		}
 	} // end of case 2
 
-	if nodeId != module.NULLSTR && role == module.NULLSTR {
+	if nodeId != module.EMPTYSTR && role == module.EMPTYSTR {
 		// case id 3: start the FE/BE node
 		// get the node type
 		tmpNodeType, i := checkStatus.GetNodeType(nodeId)
@@ -93,7 +93,7 @@ func Start(clusterName string, nodeId string, role string) {
 		}
 	} // end of case 3
 
-	if nodeId != module.NULLSTR && role != module.NULLSTR {
+	if nodeId != module.EMPTYSTR && role != module.EMPTYSTR {
 		infoMess = "Detect both --node & --role option."
 		utl.Logger.Error(infoMess)
 	} // end of case 4

@@ -25,7 +25,7 @@ func InitFeCluster(yamlConf *module.ConfStruct) {
 	var feStatusList string
 	var feEntryId int
 	tmpUser = yamlConf.Global.User
-	tmpKeyRsa = module.GSshPrivateKey
+	tmpKeyRsa = module.GSshPrivateKeyFilePath
 
 	// get FE entry
 	feEntryId, err = checkStatus.GetFeEntry(-1)

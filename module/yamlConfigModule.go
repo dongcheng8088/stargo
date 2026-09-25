@@ -2,17 +2,17 @@ package module
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"os/user"
+	"path/filepath"
 	utl "stargo/sr-utl"
 	"strconv"
 	"strings"
 	"time"
 )
 
-const NULLSTR = ""
+const EMPTYSTR = ""
 
 type FlexString string
 
@@ -33,26 +33,6 @@ func (s *FlexString) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 	return fmt.Errorf("unsupported config value type: %s", string(data))
-}
-
-var GClusterName string
-var GConfigInfo *ConfStruct
-var GAppendConfigInfo *ConfStruct
-var GSshPrivateKey string
-var GSRCtlRoot string
-var GSRVersion string
-var GWriteBackMetaPath string
-var GJdbcUser string
-var GJdbcPasswd string
-var GJdbcDb string
-var GFeEntryHost string
-var GFeEntryQueryPort uint32
-var GFeEntryEditLogPort uint32
-var GRepo *RepoStruct
-var GDownloadPath string
-
-type RepoStruct struct {
-	Repo string `json:"repo"`
 }
 
 type ConfStruct struct {
@@ -129,26 +109,89 @@ type ConfStruct struct {
 	} `json:"alertmanager_servers"`
 }
 
-func (rr *RepoStruct) getRepo() *RepoStruct {
-	repoFile, err := os.ReadFile("repo.json")
-	if err != nil {
-		panic(err)
-	}
-	err = json.Unmarshal(repoFile, rr)
-	if err != nil {
-		panic(err)
-	}
-	return rr
+type SettingsStruct struct {
+
+	// 默认配置文件目录
+	DefaultSettingDir string
+
+	// 配置文件路径
+	SettingsFilePath string
+
+	// SSH私钥文件路径，默认是 ~/.ssh/id_ed25519
+	SshPrivateKeyFilePath string `json:"ssh_private_key_file_path"`
+
+	// StarRocks安装包的地址
+	Repo string `json:"repo"`
+
+	// StarRocks安装包下载到本地的目录
+	DownloadPath string `json:"download_path"`
+
+	// 当前管理的集群名称
+	ClusterName string `json:"cluster_name"`
+
+	// 当前集群使用的StarRocks的版本
+	SrVersion string `json:"version"`
 }
 
-func GetRepo() {
-	var rp RepoStruct
-	GRepo = rp.getRepo()
-	if strings.Contains(GRepo.Repo, "file://") {
-		GDownloadPath = strings.Replace(GRepo.Repo, "file://", "", -1)
+var GlobalSettings SettingsStruct
+
+var GClusterName string
+var GConfigInfo *ConfStruct
+var GAppendConfigInfo *ConfStruct
+var GSshPrivateKeyFilePath string
+var GSRCtlRoot string
+var GSRVersion string
+var GWriteBackMetaPath string
+var GJdbcUser string
+var GJdbcPasswd string
+var GJdbcDb string
+var GFeEntryHost string
+var GFeEntryQueryPort uint32
+var GFeEntryEditLogPort uint32
+var GDownloadPath string
+
+// DefaultLogDir 返回默认配置文件目录 ~/.local/share/stargo
+func defaultSettingDir() string {
+	basedir, err := os.UserHomeDir()
+	if err != nil {
+		basedir = os.TempDir()
 	} else {
-		GDownloadPath = GSRCtlRoot + "/download"
+		basedir = filepath.Join(basedir, ".local/share")
 	}
+	return filepath.Join(basedir, "stargo")
+}
+
+// InitSettings 初始化配置信息，并从配置文件中读取配置信息
+func InitSettings() (err error) {
+	// 获取当前用户信息
+	osUser, _ := user.Current()
+	// 初始化配置文件路径，读取配置文件内容
+	GlobalSettings.DefaultSettingDir = defaultSettingDir()
+	GlobalSettings.SettingsFilePath = filepath.Join(GlobalSettings.DefaultSettingDir, "settings.json")
+	content, err := os.ReadFile(GlobalSettings.SettingsFilePath)
+	if err != nil {
+		return err
+	}
+	// 解析配置文件内容
+	err = json.Unmarshal(content, &GlobalSettings)
+	if err != nil {
+		return err
+	}
+	// 如果没有指定SSH私钥文件路径，默认使用 ~/.ssh/id_ed25519
+	if GlobalSettings.SshPrivateKeyFilePath == "" {
+		GlobalSettings.SshPrivateKeyFilePath = fmt.Sprintf("%s/.ssh/id_ed25519", osUser.HomeDir)
+	}
+	// 如果没有指定StarRocks安装包的地址，默认使用 ~/.stargo/download
+	if strings.Contains(GlobalSettings.Repo, "file://") {
+		GDownloadPath = strings.Replace(GlobalSettings.Repo, "file://", "", -1)
+	} else {
+		GDownloadPath = GlobalSettings.DefaultSettingDir + "/download"
+	}
+	return nil
+}
+
+func SetSrVersion(newVersion string) {
+	GSRVersion = newVersion
 }
 
 func GetConf(fileName string) (sr_cluster_config *ConfStruct, err error) {
@@ -167,7 +210,7 @@ func GetConf(fileName string) (sr_cluster_config *ConfStruct, err error) {
 func InitConf(clusterName string, fileName string) (err error) {
 	// get home dir & ssh auth key
 	osUser, _ := user.Current()
-	GSshPrivateKey = fmt.Sprintf("%s/.ssh/id_ed25519", osUser.HomeDir)
+	GSshPrivateKeyFilePath = fmt.Sprintf("%s/.ssh/id_ed25519", osUser.HomeDir)
 
 	// get sr-ctl root dir
 	GSRCtlRoot = os.Getenv("SRCTLROOT")
@@ -184,7 +227,6 @@ func InitConf(clusterName string, fileName string) (err error) {
 	GJdbcPasswd = ""
 	GJdbcDb = ""
 
-	// parse config json file
 	// 如果没有指定配置文件路径，默认使用写入路径下的meta.json文件
 	if fileName == "" {
 		GConfigInfo, err = GetConf(GWriteBackMetaPath + "/meta.json")
@@ -205,7 +247,7 @@ func AppendConf(clusterName string) (err error) {
 	var metaFile string
 
 	osUser, _ := user.Current()
-	GSshPrivateKey = fmt.Sprintf("%s/.ssh/id_ed25519", osUser.HomeDir)
+	GSshPrivateKeyFilePath = fmt.Sprintf("%s/.ssh/id_ed25519", osUser.HomeDir)
 	GSRCtlRoot = os.Getenv("SRCTLROOT")
 	if GSRCtlRoot == "" {
 		GSRCtlRoot = fmt.Sprintf("%s/.stargo", osUser.HomeDir)
@@ -248,7 +290,7 @@ func WriteBackMeta(cc *ConfStruct, metaFilePath string) (err error) {
 	cc.ClusterInfo.CreateDate = time.Unix(time.Now().Unix(), 0).Format("2006-01-02 15:04:05")
 	cc.ClusterInfo.Version = GSRVersion
 	cc.ClusterInfo.MetaPath = GWriteBackMetaPath
-	cc.ClusterInfo.PrivateKey = GSshPrivateKey
+	cc.ClusterInfo.PrivateKey = GSshPrivateKeyFilePath
 
 	jsonStr, err := json.MarshalIndent(cc, "", "  ")
 	if err != nil {
@@ -262,21 +304,6 @@ func WriteBackMeta(cc *ConfStruct, metaFilePath string) (err error) {
 	}
 
 	return nil
-}
-
-func SetGlobalVar(key string, value string) {
-
-	var infoMess string
-
-	switch key {
-	case "GSRVersion":
-		GSRVersion = value
-	case "GDownloadPath":
-		GDownloadPath = value
-	default:
-		infoMess = fmt.Sprintf("Error in set global variables. Now we only support \" GSRVERSION | GRepo\". [key = %s, value = %s]", key, value)
-		panic(errors.New(infoMess))
-	}
 }
 
 func SetFeEntry(feEntryId int) {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"stargo/cluster/clusterOption"
+	"stargo/module"
 	"stargo/playground"
 	utl "stargo/sr-utl"
 	"strconv"
@@ -43,6 +44,12 @@ func main() {
 
 	if len(os.Args) < 2 {
 		utl.Logger.Error("参数不足，第一个参数可以是playground、checkport或cluster命令。")
+		return
+	}
+
+	err := module.InitSettings()
+	if err != nil {
+		utl.Logger.Error("初始化配置文件失败，错误信息：" + err.Error())
 		return
 	}
 

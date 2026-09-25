@@ -17,7 +17,7 @@ func CheckBePortStatus(beId int) (checkPortRes bool, err error) {
 	var infoMess string
 
 	tmpUser := module.GConfigInfo.Global.User
-	tmpKeyRsa := module.GSshPrivateKey
+	tmpKeyRsa := module.GSshPrivateKeyFilePath
 	tmpBeHost := module.GConfigInfo.BeServers[beId].Host
 	tmpSshPort := module.GConfigInfo.BeServers[beId].SshPort
 	tmpHeartbeatServicePort := module.GConfigInfo.BeServers[beId].HeartbeatServicePort

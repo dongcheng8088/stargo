@@ -52,7 +52,7 @@ func ScaleIn(clusterName string, nodeId string) {
 	sqlPassword := ""
 	sqlDbName := ""
 	user = module.GConfigInfo.Global.User
-	keyRsa = module.GSshPrivateKey
+	keyRsa = module.GSshPrivateKeyFilePath
 
 	if tmpNodeType == "FE" {
 

@@ -22,7 +22,7 @@ func StartBeCluster() {
 	var tmpBeDeployDir string
 
 	tmpUser = module.GConfigInfo.Global.User
-	tmpKeyRsa = module.GSshPrivateKey
+	tmpKeyRsa = module.GSshPrivateKeyFilePath
 
 	for i := 0; i < len(module.GConfigInfo.BeServers); i++ {
 		// for i := 0; i < 1; i++ { ## debug leader node

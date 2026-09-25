@@ -20,7 +20,7 @@ func Stop(clusterName string, nodeId string, role string) {
 	module.InitConf(clusterName, "")
 
 	tmpUser = module.GConfigInfo.Global.User
-	tmpKeyRsa = module.GSshPrivateKey
+	tmpKeyRsa = module.GSshPrivateKeyFilePath
 
 	if checkStatus.CheckClusterName(clusterName) {
 		infoMess = "Don't find the Cluster " + clusterName
@@ -41,13 +41,13 @@ func Stop(clusterName string, nodeId string, role string) {
 	//  |  3         | !null      |  null     |  stop  the FE/BE node (BE only)                 |
 	//  |  4         | !null      |  !null    |  error                                          |
 	//  -----------------------------------------------------------------------------------------
-	if nodeId == module.NULLSTR && role == module.NULLSTR {
+	if nodeId == module.EMPTYSTR && role == module.EMPTYSTR {
 		// case id 1: - stop all cluster: sr-ctl-cluster stop sr-c1
 		stopCluster.StopFeCluster(clusterName)
 		stopCluster.StopBeCluster(clusterName)
 	} // end of case 1
 
-	if nodeId == module.NULLSTR && role != module.NULLSTR {
+	if nodeId == module.EMPTYSTR && role != module.EMPTYSTR {
 		// case id 2: stop FE or BE cluster
 		if role == "FE" {
 			infoMess = "Stopping FE cluster ...."
@@ -63,7 +63,7 @@ func Stop(clusterName string, nodeId string, role string) {
 		}
 	} // end of case 2
 
-	if nodeId != module.NULLSTR && role == module.NULLSTR {
+	if nodeId != module.EMPTYSTR && role == module.EMPTYSTR {
 		// case id 3: stop the FE/BE node
 		// get the node type
 		tmpNodeType, i := checkStatus.GetNodeType(nodeId)
@@ -89,7 +89,7 @@ func Stop(clusterName string, nodeId string, role string) {
 		}
 	} // end of case 3
 
-	if nodeId != module.NULLSTR && role != module.NULLSTR {
+	if nodeId != module.EMPTYSTR && role != module.EMPTYSTR {
 		infoMess = "Detect both --node & --role option."
 		utl.Logger.Error(infoMess)
 	} // end of case 4

@@ -18,7 +18,7 @@ func ScaleOut(clusterName string, scaleMetaFile string) {
 	// Get the cluster version
 	module.AppendConf(clusterName)
 	clusterVersion = module.GAppendConfigInfo.ClusterInfo.Version
-	module.SetGlobalVar("GSRVersion", clusterVersion)
+	module.SetSrVersion(clusterVersion)
 	module.InitConf(clusterName, scaleMetaFile)
 
 	if checkStatus.CheckClusterName(clusterName) {

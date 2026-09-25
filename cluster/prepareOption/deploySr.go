@@ -31,7 +31,7 @@ func DistributeFeDir() {
 	for i := 0; i < len(module.GConfigInfo.FeServers); i++ {
 
 		sshUser := module.GConfigInfo.Global.User
-		rsaKey := module.GSshPrivateKey
+		rsaKey := module.GSshPrivateKeyFilePath
 		sshPort := module.GConfigInfo.FeServers[i].SshPort
 		sshHost := module.GConfigInfo.FeServers[i].Host
 
@@ -71,7 +71,7 @@ func DistributeBeDir() {
 	for i := 0; i < len(module.GConfigInfo.BeServers); i++ {
 
 		sshUser := module.GConfigInfo.Global.User
-		rsaKey := module.GSshPrivateKey
+		rsaKey := module.GSshPrivateKeyFilePath
 		sshPort := module.GConfigInfo.BeServers[i].SshPort
 		sshHost := module.GConfigInfo.BeServers[i].Host
 		beSourceDir := fmt.Sprintf("%s/StarRocks-%s/be", module.GDownloadPath, strings.Replace(module.GSRVersion, "v", "", -1))

@@ -45,7 +45,7 @@ func StopFeCluster(clusterName string) {
 	//var feStatusList string
 
 	tmpUser = module.GConfigInfo.Global.User
-	tmpKeyRsa = module.GSshPrivateKey
+	tmpKeyRsa = module.GSshPrivateKeyFilePath
 
 	infoMess = "Stop cluster " + clusterName
 	utl.Logger.Info(infoMess)

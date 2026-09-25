@@ -56,7 +56,7 @@ func UpgradeBeNode(beId int) {
 	var err error
 
 	user = module.GConfigInfo.Global.User
-	keyRsa = module.GSshPrivateKey
+	keyRsa = module.GSshPrivateKeyFilePath
 	sshHost = module.GConfigInfo.BeServers[beId].Host
 	sshPort = module.GConfigInfo.BeServers[beId].SshPort
 	beDeployDir = module.GConfigInfo.BeServers[beId].DeployDir

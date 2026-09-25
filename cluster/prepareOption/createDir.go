@@ -38,7 +38,7 @@ func CreateFeDir() {
 	//var outPut []byte
 
 	sshUser := module.GConfigInfo.Global.User
-	sshKeyRsaFile := module.GSshPrivateKey
+	sshKeyRsaFile := module.GSshPrivateKeyFilePath
 
 	for i := 0; i < len(module.GConfigInfo.FeServers); i++ {
 		sshHost := module.GConfigInfo.FeServers[i].Host
@@ -102,7 +102,7 @@ func CreateBeDir() {
 	//var outPut []byte
 
 	sshUser := module.GConfigInfo.Global.User
-	sshKeyRsaFile := module.GSshPrivateKey
+	sshKeyRsaFile := module.GSshPrivateKeyFilePath
 
 	for i := 0; i < len(module.GConfigInfo.BeServers); i++ {
 		sshHost := module.GConfigInfo.BeServers[i].Host

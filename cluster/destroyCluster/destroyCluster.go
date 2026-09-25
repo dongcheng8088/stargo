@@ -31,7 +31,7 @@ func rmFeDir(clusterName string) {
 
 		tmpFeDeployDir = module.GConfigInfo.FeServers[i].DeployDir
 		tmpUser = module.GConfigInfo.Global.User
-		tmpKeyRsa = module.GSshPrivateKey
+		tmpKeyRsa = module.GSshPrivateKeyFilePath
 		tmpFeMetaDir = module.GConfigInfo.FeServers[i].MetaDir
 		tmpFeHost = module.GConfigInfo.FeServers[i].Host
 		tmpFeSshPort = module.GConfigInfo.FeServers[i].SshPort
@@ -68,7 +68,7 @@ func rmBeDir(clusterName string) {
 
 		tmpBeDeployDir = module.GConfigInfo.BeServers[i].DeployDir
 		tmpUser = module.GConfigInfo.Global.User
-		tmpKeyRsa = module.GSshPrivateKey
+		tmpKeyRsa = module.GSshPrivateKeyFilePath
 		tmpBeStorageDir = module.GConfigInfo.BeServers[i].StorageDir
 		tmpBeHost = module.GConfigInfo.BeServers[i].Host
 		tmpBeSshPort = module.GConfigInfo.BeServers[i].SshPort

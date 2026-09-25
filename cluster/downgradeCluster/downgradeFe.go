@@ -94,7 +94,7 @@ func DowngradeFeNode(feId int) (err error) {
 	var keyRsa string
 
 	user = module.GConfigInfo.Global.User
-	keyRsa = module.GSshPrivateKey
+	keyRsa = module.GSshPrivateKeyFilePath
 	sshHost = module.GConfigInfo.FeServers[feId].Host
 	sshPort = module.GConfigInfo.FeServers[feId].SshPort
 	feDeployDir = module.GConfigInfo.FeServers[feId].DeployDir

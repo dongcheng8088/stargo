@@ -306,7 +306,7 @@ func preCheckFe() (fePreCheckRes []FePreCheckStruct) {
 
 	fePreCheckRes = make([]FePreCheckStruct, len(module.GConfigInfo.FeServers))
 	tmpUser = module.GConfigInfo.Global.User
-	tmpKeyRsa = module.GSshPrivateKey
+	tmpKeyRsa = module.GSshPrivateKeyFilePath
 
 	for i := 0; i < len(module.GConfigInfo.FeServers); i++ {
 
@@ -367,7 +367,7 @@ func preCheckBe() (bePreCheckRes []BePreCheckStruct) {
 
 	bePreCheckRes = make([]BePreCheckStruct, len(module.GConfigInfo.BeServers))
 	tmpUser = module.GConfigInfo.Global.User
-	tmpKeyRsa = module.GSshPrivateKey
+	tmpKeyRsa = module.GSshPrivateKeyFilePath
 
 	for i := 0; i < len(module.GConfigInfo.BeServers); i++ {
 
@@ -518,7 +518,7 @@ func sshAuth(sshHost string, sshPort uint32) (string, string) {
 	var infoMess string
 	var checkMess string
 
-	keyRsa := module.GSshPrivateKey
+	keyRsa := module.GSshPrivateKeyFilePath
 	sshUser := module.GConfigInfo.Global.User
 
 	output, _ := utl.SshRun(sshUser, keyRsa, sshHost, sshPort, "date")
@@ -542,7 +542,7 @@ func openFile(sshHost string, sshPort uint32) (string, string) {
 	var infoMess string
 	var checkMess string
 
-	keyRsa := module.GSshPrivateKey
+	keyRsa := module.GSshPrivateKeyFilePath
 	sshUser := module.GConfigInfo.Global.User
 
 	output, err := utl.SshRun(sshUser, keyRsa, sshHost, sshPort, "ulimit -n")
@@ -573,7 +573,7 @@ func openFile(sshHost string, sshPort uint32) (string, string) {
 func TestPreCheck() {
 
 	module.InitConf("sr-c1", "sr-c1.json")
-	module.SetGlobalVar("GSRVersion", "v2.2.0")
+	module.SetSrVersion("v2.2.0")
 
 	PreCheckSR()
 	//aaa := preCheckFe()

@@ -26,7 +26,7 @@ func InitBeCluster(yamlConf *module.ConfStruct) {
 	// var tmpFeEntryHost string
 	// var tmpFeEntryPort int
 	tmpUser = module.GConfigInfo.Global.User
-	tmpKeyRsa = module.GSshPrivateKey
+	tmpKeyRsa = module.GSshPrivateKeyFilePath
 
 	// get FE entry
 	feEntryId, err := checkStatus.GetFeEntry(-1)

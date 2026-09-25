@@ -23,7 +23,7 @@ func StartFeCluster() {
 	var tmpFeDeployDir string
 
 	tmpUser = module.GConfigInfo.Global.User
-	tmpKeyRsa = module.GSshPrivateKey
+	tmpKeyRsa = module.GSshPrivateKeyFilePath
 
 	for i := 0; i < len(module.GConfigInfo.FeServers); i++ {
 		// for i := 0; i < 1; i++ { ## debug leader node

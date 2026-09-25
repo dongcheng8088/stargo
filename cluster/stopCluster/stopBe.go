@@ -45,7 +45,7 @@ func StopBeCluster(clusterName string) {
 	//var beStatusList             string
 
 	tmpUser = module.GConfigInfo.Global.User
-	tmpKeyRsa = module.GSshPrivateKey
+	tmpKeyRsa = module.GSshPrivateKeyFilePath
 
 	infoMess = "Stop cluster " + clusterName
 	utl.Logger.Info(infoMess)

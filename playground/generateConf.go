@@ -14,7 +14,7 @@ func InitPlaygroundConf() {
 	var tmp module.ConfStruct
 
 	osUser, _ := user.Current()
-	module.GSshPrivateKey = fmt.Sprintf("%s/.ssh/id_rsa", osUser.HomeDir)
+	module.GSshPrivateKeyFilePath = fmt.Sprintf("%s/.ssh/id_rsa", osUser.HomeDir)
 	module.GSRCtlRoot = os.Getenv("SRCTLROOT")
 	if module.GSRCtlRoot == "" {
 		module.GSRCtlRoot = fmt.Sprintf("%s/.stargo", osUser.HomeDir)
@@ -26,7 +26,7 @@ func InitPlaygroundConf() {
 	tmp.ClusterInfo.Version = "2.2.0"
 	tmp.ClusterInfo.CreateDate = time.Unix(time.Now().Unix(), 0).Format("2006-01-02 15:04:05")
 	tmp.ClusterInfo.MetaPath = fmt.Sprintf("%s/cluster/sr-playground", module.GSRCtlRoot)
-	tmp.ClusterInfo.PrivateKey = module.GSshPrivateKey
+	tmp.ClusterInfo.PrivateKey = module.GSshPrivateKeyFilePath
 
 	tmp.Global.User = osUser.Username
 	tmp.Global.SshPort = 22

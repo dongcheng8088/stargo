@@ -56,7 +56,7 @@ func UpgradeFeNode(feId int) {
 	var err error
 
 	user = module.GConfigInfo.Global.User
-	keyRsa = module.GSshPrivateKey
+	keyRsa = module.GSshPrivateKeyFilePath
 	sshHost = module.GConfigInfo.FeServers[feId].Host
 	sshPort = module.GConfigInfo.FeServers[feId].SshPort
 	feDeployDir = module.GConfigInfo.FeServers[feId].DeployDir

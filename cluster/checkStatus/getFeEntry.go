@@ -24,7 +24,7 @@ func GetFeEntry(blackFeNodeId int) (feEntryId int, err error) {
 		tmpSshPort := module.GConfigInfo.FeServers[i].SshPort
 		tmpQueryPort := module.GConfigInfo.FeServers[i].QueryPort
 		tmpUser := module.GConfigInfo.Global.User
-		tmpKeyRsa := module.GSshPrivateKey
+		tmpKeyRsa := module.GSshPrivateKeyFilePath
 		// check port stat by [netstat -nltp | grep 9030 | grep -v ESTABLISHED]
 		cmd := fmt.Sprintf("netstat -an | grep ':%d ' | grep -v ESTABLISHED", tmpQueryPort)
 

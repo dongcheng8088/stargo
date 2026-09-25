@@ -16,7 +16,7 @@ func Deploy(clusterName string, clusterVersion string, metaFile string) {
 		utl.Logger.Error(fmt.Sprintf("初始化元配置文件[%s]失败，错误信息：%s", metaFile, err.Error()))
 		return
 	}
-	module.SetGlobalVar("GSRVersion", clusterVersion)
+	module.SetSrVersion(clusterVersion)
 
 	prepareOption.PreCheckSR()
 	prepareOption.CreateDir()
