@@ -14,7 +14,7 @@
       "deploy_dir": "/opt/starrocks/fe",
       "meta_dir": "/data/starrocks/fe/meta",
       "log_dir": "/data/starrocks/fe/log",
-      "priority_networks": "192.168.88.0/24",
+      "priority_networks": "192.168.122.0/24",
       "config": {
         "sys_log_level": "INFO",
         "sys_log_delete_age": "1d"
@@ -30,7 +30,7 @@
       "deploy_dir": "/opt/starrocks/fe",
       "meta_dir": "/data/starrocks/fe/meta",
       "log_dir": "/data/starrocks/fe/log",
-      "priority_networks": "192.168.88.0/24",
+      "priority_networks": "192.168.122.0/24",
       "config": {
         "sys_log_delete_age": "2d"
       }
@@ -45,7 +45,7 @@
       "deploy_dir": "/opt/starrocks/fe",
       "meta_dir": "/data/starrocks/fe/meta",
       "log_dir": "/data/starrocks/fe/log",
-      "priority_networks": "192.168.88.0/24",
+      "priority_networks": "192.168.122.0/24",
       "config": {
         "sys_log_delete_age": "3d"
       }
@@ -62,7 +62,7 @@
       "deploy_dir": "/opt/starrocks/be",
       "storage_dir": "/data/starrocks/be/storage",
       "log_dir": "/data/starrocks/be/log",
-      "priority_networks": "192.168.88.0/24",
+      "priority_networks": "192.168.122.0/24",
       "config": {
         "create_tablet_worker_count": 3
       }
@@ -77,7 +77,7 @@
       "deploy_dir": "/opt/starrocks/be",
       "storage_dir": "/data/starrocks/be/storage",
       "log_dir": "/data/starrocks/be/log",
-      "priority_networks": "192.168.88.0/24",
+      "priority_networks": "192.168.122.0/24",
       "config": {
         "create_tablet_worker_count": 3
       }
@@ -92,7 +92,7 @@
       "deploy_dir": "/opt/starrocks/be",
       "storage_dir": "/data/starrocks/be/storage",
       "log_dir": "/data/starrocks/be/log",
-      "priority_networks": "192.168.88.0/24",
+      "priority_networks": "192.168.122.0/24",
       "config": {
         "create_tablet_worker_count": 3
       }

@@ -7,11 +7,33 @@ import (
 	"os"
 	"os/user"
 	utl "stargo/sr-utl"
+	"strconv"
 	"strings"
 	"time"
 )
 
 const NULLSTR = ""
+
+type FlexString string
+
+func (s *FlexString) UnmarshalJSON(data []byte) error {
+	var str string
+	if err := json.Unmarshal(data, &str); err == nil {
+		*s = FlexString(str)
+		return nil
+	}
+	var num json.Number
+	if err := json.Unmarshal(data, &num); err == nil {
+		*s = FlexString(num.String())
+		return nil
+	}
+	var b bool
+	if err := json.Unmarshal(data, &b); err == nil {
+		*s = FlexString(strconv.FormatBool(b))
+		return nil
+	}
+	return fmt.Errorf("unsupported config value type: %s", string(data))
+}
 
 var GClusterName string
 var GConfigInfo *ConfStruct
@@ -48,36 +70,36 @@ type ConfStruct struct {
 	} `json:"global"`
 
 	ServerConfig struct {
-		Fe map[string]string `json:"fe"`
-		Be map[string]string `json:"be"`
+		Fe map[string]FlexString `json:"fe"`
+		Be map[string]FlexString `json:"be"`
 	} `json:"server_configs"`
 
 	FeServers []struct {
-		Host             string            `json:"host"`
-		SshPort          uint32            `json:"ssh_port"`
-		HttpPort         uint32            `json:"http_port"`
-		RpcPort          uint32            `json:"rpc_port"`
-		QueryPort        uint32            `json:"query_port"`
-		EditLogPort      uint32            `json:"edit_log_port"`
-		DeployDir        string            `json:"deploy_dir"`
-		MetaDir          string            `json:"meta_dir"`
-		LogDir           string            `json:"log_dir"`
-		PriorityNetworks string            `json:"priority_networks"`
-		Config           map[string]string `json:"config"`
+		Host             string                `json:"host"`
+		SshPort          uint32                `json:"ssh_port"`
+		HttpPort         uint32                `json:"http_port"`
+		RpcPort          uint32                `json:"rpc_port"`
+		QueryPort        uint32                `json:"query_port"`
+		EditLogPort      uint32                `json:"edit_log_port"`
+		DeployDir        string                `json:"deploy_dir"`
+		MetaDir          string                `json:"meta_dir"`
+		LogDir           string                `json:"log_dir"`
+		PriorityNetworks string                `json:"priority_networks"`
+		Config           map[string]FlexString `json:"config"`
 	} `json:"fe_servers"`
 
 	BeServers []struct {
-		Host                 string            `json:"host"`
-		SshPort              uint32            `json:"ssh_port"`
-		BePort               uint32            `json:"be_port"`
-		WebServerPort        uint32            `json:"webserver_port"`
-		HeartbeatServicePort uint32            `json:"heartbeat_service_port"`
-		BrpcPort             uint32            `json:"brpc_port"`
-		DeployDir            string            `json:"deploy_dir"`
-		StorageDir           string            `json:"storage_dir"`
-		LogDir               string            `json:"log_dir"`
-		PriorityNetworks     string            `json:"priority_networks"`
-		Config               map[string]string `json:"config"`
+		Host                 string                `json:"host"`
+		SshPort              uint32                `json:"ssh_port"`
+		BePort               uint32                `json:"be_port"`
+		WebServerPort        uint32                `json:"webserver_port"`
+		HeartbeatServicePort uint32                `json:"heartbeat_service_port"`
+		BrpcPort             uint32                `json:"brpc_port"`
+		DeployDir            string                `json:"deploy_dir"`
+		StorageDir           string                `json:"storage_dir"`
+		LogDir               string                `json:"log_dir"`
+		PriorityNetworks     string                `json:"priority_networks"`
+		Config               map[string]FlexString `json:"config"`
 	} `json:"be_servers"`
 
 	PrometheusServer struct {
@@ -130,16 +152,16 @@ func GetRepo() {
 }
 
 func GetConf(fileName string) (sr_cluster_config *ConfStruct, err error) {
-	sr_cluster_config = nil
 	jsonFile, err := os.ReadFile(fileName)
 	if err != nil {
-		return sr_cluster_config, err
+		return nil, err
 	}
+	sr_cluster_config = &ConfStruct{}
 	err = json.Unmarshal(jsonFile, sr_cluster_config)
 	if err != nil {
-		return sr_cluster_config, err
+		return nil, err
 	}
-	return sr_cluster_config, err
+	return sr_cluster_config, nil
 }
 
 func InitConf(clusterName string, fileName string) (err error) {

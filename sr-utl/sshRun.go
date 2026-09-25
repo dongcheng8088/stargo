@@ -183,7 +183,7 @@ func UploadDir(user string, keyFile string, host string, port uint32, sourceDir 
 	var innerError error
 
 	// 确保目标目录存在（mkdir -p 是幂等的，目录已存在时无操作）
-	cmd := fmt.Sprintf("mkdir -p %s", shellQuote(targetDir))
+	cmd := fmt.Sprintf("mkdir -p %s", ShellQuote(targetDir))
 	_, innerError = SshRun(user, keyFile, host, port, cmd)
 	if innerError != nil {
 		infoMess := fmt.Sprintf("Error in create folder [%s] on [%s:%032d]", targetDir, host, port)
@@ -220,7 +220,7 @@ func UploadDir(user string, keyFile string, host string, port uint32, sourceDir 
 func RenameDir(user string, keyFile string, host string, port uint32, sourceDir string, targetDir string) (err error) {
 	var innerError error
 
-	cmd := fmt.Sprintf("ls -- %s", shellQuote(sourceDir))
+	cmd := fmt.Sprintf("ls -- %s", ShellQuote(sourceDir))
 	_, innerError = SshRun(user, keyFile, host, port, cmd)
 	if innerError != nil && !os.IsExist(innerError) {
 		err = fmt.Errorf("The source dir [%s] on [%s:%032d] doesn't exist", sourceDir, host, port)
@@ -256,7 +256,7 @@ func RemoveDir(user string, keyFile string, host string, port uint32, dirName st
 	var innerError error
 
 	// 使用 rm -rf 可删除非空目录，且对不存在的目录返回成功（幂等）
-	cmd := fmt.Sprintf("rm -rf %s", shellQuote(dirName))
+	cmd := fmt.Sprintf("rm -rf %s", ShellQuote(dirName))
 	_, innerError = SshRun(user, keyFile, host, port, cmd)
 	if innerError != nil && !os.IsExist(innerError) {
 		err = fmt.Errorf("Failed to remove directory %s on [%s:%032d]: %s", dirName, host, port, innerError.Error())
@@ -266,8 +266,8 @@ func RemoveDir(user string, keyFile string, host string, port uint32, dirName st
 	return nil
 }
 
-// shellQuote 将字符串转义为可安全传入 shell 单引号上下文的形式，
+// ShellQuote 将字符串转义为可安全传入 shell 单引号上下文的形式，
 // 防止路径中的特殊字符（空格、分号、引号等）导致命令注入。
-func shellQuote(s string) string {
+func ShellQuote(s string) string {
 	return "'" + strings.ReplaceAll(s, "'", "'\\''") + "'"
 }

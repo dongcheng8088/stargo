@@ -82,7 +82,7 @@ func ModifyClusterConfig() {
 		}
 
 		for k, v := range module.GConfigInfo.FeServers[i].Config {
-			appendConfig(tmpFeTargetConfFile, k, v)
+			appendConfig(tmpFeTargetConfFile, k, string(v))
 		}
 
 		// distribute tmp fe configuration file
@@ -122,15 +122,15 @@ func ModifyClusterConfig() {
 		configMap["brpc_port"] = strconv.Itoa(int(module.GConfigInfo.BeServers[i].BrpcPort))
 		for k, v := range configMap {
 			if v != "0" {
-				appendConfig(tmpBeTargetConfFile, k, v)
+				appendConfig(tmpBeTargetConfFile, k, string(v))
 			}
 		}
 
 		for k, v := range module.GConfigInfo.BeServers[i].Config {
-			appendConfig(tmpBeTargetConfFile, k, v)
+			appendConfig(tmpBeTargetConfFile, k, string(v))
 		}
 
-		// distribute tmp fe configuration file
+		// distribute tmp be configuration file
 		tmpBeSshPort := module.GConfigInfo.BeServers[i].SshPort
 		tmpTargetBeConfPath := module.GConfigInfo.BeServers[i].DeployDir + "/conf/be.conf"
 		utl.UploadFile(tmpUser, tmpKeyFile, tmpBeHost, tmpBeSshPort, tmpBeTargetConfFile, tmpTargetBeConfPath)

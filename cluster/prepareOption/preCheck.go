@@ -416,30 +416,30 @@ func preCheckBe() (bePreCheckRes []BePreCheckStruct) {
 }
 
 func dirPriv(user string, keyRsa string, sshHost string, sshPort uint32, dirName string, logStr string) (res string) {
-
 	var infoMess string
 	var cmd string
 	var dirBase string
 
 	dirBase = path.Dir(dirName)
-	// dirBase = dirName
-	cmd = fmt.Sprintf("ls -al %s | grep 'd.* .$'", dirBase)
+	// 使用 stat -c '%A %U' 直接输出权限位和属主，两列均不随 locale 变化，
+	// 避免原 ls + grep 'd.* .$' 方案依赖单字符目录名和 ls 列顺序的脆弱性。
+	cmd = fmt.Sprintf("stat -c '%%A %%U' %s", utl.ShellQuote(dirBase))
 	output, _ := utl.SshRun(user, keyRsa, sshHost, sshPort, cmd)
 	reg := regexp.MustCompile("\\s+")
-	dirStatArr := reg.Split(string(output), -1)
+	dirStatArr := reg.Split(strings.TrimSpace(string(output)), -1)
 
-	if strings.Contains(dirStatArr[0], "drwx") && dirStatArr[2] == user {
+	// stat 输出固定两列：index 0 = 权限位（如 drwxr-xr-x），index 1 = 属主用户名。
+	// 加长度检查防御：目录不存在或 stat 失败时输出非预期，避免越界 panic。
+	if len(dirStatArr) >= 2 && strings.Contains(dirStatArr[0], "drwx") && dirStatArr[1] == user {
 		infoMess = fmt.Sprintf("Detect the %-20s don't have create folder privileges [Host = %-20s, Dir = %-30s]\n", logStr, sshHost, dirName)
 		utl.Logger.Debug(infoMess)
 		return CHECKPASS
-	} else {
-		if dirBase != "/" {
-			res = dirPriv(user, keyRsa, sshHost, sshPort, dirBase, logStr)
-			if res == CHECKPASS {
-				return CHECKPASS
-			}
-		} else {
-			return "Priv failed"
+	}
+
+	if dirBase != "/" {
+		res = dirPriv(user, keyRsa, sshHost, sshPort, dirBase, logStr)
+		if res == CHECKPASS {
+			return CHECKPASS
 		}
 	}
 
@@ -447,7 +447,6 @@ func dirPriv(user string, keyRsa string, sshHost string, sshPort uint32, dirName
 }
 
 func dirExist(user string, keyRsa string, sshHost string, sshPort uint32, dirName string, logStr string) (string, string) {
-
 	var infoMess string
 	var cmd string
 	var res string = CHECKPASS
@@ -455,19 +454,18 @@ func dirExist(user string, keyRsa string, sshHost string, sshPort uint32, dirNam
 	var resPrivs string = CHECKPASS
 	var checkMess string
 
-	// check dir exist
-	cmd = "ls -l " + dirName
-	// SshRun(user string, keyFile string, host string, port int, command string) (outPut []byte, err error)
+	// 检查目录是否存在
+	// 使用 test -d 退出码而非 ls -l 的本地化输出，避免 zh_CN 下 "总计" 导致误判
+	cmd = fmt.Sprintf("test -d %s && echo 1 || echo 0", utl.ShellQuote(dirName))
 	output, _ := utl.SshRun(user, keyRsa, sshHost, sshPort, cmd)
-	if strings.Contains(string(output), "total") {
+	if strings.TrimSpace(string(output)) == "1" {
 		infoMess = fmt.Sprintf("Detect the %-20s exist [Host = %-20s, Dir = %-30s]\n", logStr, sshHost, dirName)
 		utl.Logger.Debug(infoMess)
-		//return CHECKFAILED
 		resExist = "Dir exist"
 	}
-	// check dir privs
-	resPrivs = dirPriv(user, keyRsa, sshHost, sshPort, dirName, logStr)
 
+	// 检查目录权限是否存在
+	resPrivs = dirPriv(user, keyRsa, sshHost, sshPort, dirName, logStr)
 	if resPrivs == CHECKPASS && resExist == CHECKPASS {
 		res = CHECKPASS
 	} else if resPrivs == CHECKPASS && resExist != CHECKPASS {
@@ -482,11 +480,9 @@ func dirExist(user string, keyRsa string, sshHost string, sshPort uint32, dirNam
 		res = fmt.Sprintf("%s: %s/%s", CHECKFAILED, resExist, resPrivs)
 		// dir exist, no priv
 		checkMess = fmt.Sprintf("  [Host = %s]  mkdir %s.bak && mv %s/* %s.bak/ && chown -R %s %s", sshHost, dirName, dirName, dirName, user, dirName)
-
 	}
 
 	return res, checkMess
-	//return CHECKPASS
 }
 
 func portUsed(user string, keyRsa string, sshHost string, sshPort uint32, detectPort uint32, logStr string) (string, string) {
@@ -494,57 +490,38 @@ func portUsed(user string, keyRsa string, sshHost string, sshPort uint32, detect
 	var infoMess string
 	var checkMess string
 
-	cmd := fmt.Sprintf("netstat -an | grep ':%d ' | grep -v ESTABLISHED", detectPort)
-
-	// SshRun(user string, keyFile string, host string, port int, command string) (outPut []byte, err error)
-
+	// ss 来自 iproute2，现代 Linux 发行版默认安装；netstat（net-tools）已弃用且常未预装，
+	// 原实现因 netstat 不存在导致 output 为空、静默误判端口空闲（false negative）。
+	// 用 shell 条件分支输出固定标记，与 locale 无关，且能区分"工具缺失/端口占用/端口空闲"。
+	cmd := fmt.Sprintf("if ! command -v ss >/dev/null 2>&1; then echo __NO_SS__; elif ss -tlnp 2>/dev/null | grep -q ':%d '; then echo __USED__; else echo __FREE__; fi", detectPort)
 	output, _ := utl.SshRun(user, keyRsa, sshHost, sshPort, cmd)
-	if strings.Contains(string(output), ":"+strconv.Itoa(int(detectPort))) {
+	switch strings.TrimSpace(string(output)) {
+	case "__USED__":
 		infoMess = fmt.Sprintf("Detect the %s used [Host = %s, Port = %d]\n", logStr, sshHost, detectPort)
 		utl.Logger.Debug(infoMess)
-		checkMess = fmt.Sprintf("  [Host = %s]  netstat -nltp ':%d '", sshHost, detectPort)
+		checkMess = fmt.Sprintf("  [Host = %s]  ss -tlnp | grep ':%d '", sshHost, detectPort)
 		return CHECKFAILED, checkMess
+	case "__NO_SS__":
+		infoMess = fmt.Sprintf("Command 'ss' not found on %s, please install iproute2\n", sshHost)
+		utl.Logger.Error(infoMess)
+		checkMess = fmt.Sprintf("  [Host = %s]  apt-get install -y iproute2", sshHost)
+		return CHECKFAILED, checkMess
+	default:
+		// __FREE__ 或 SSH 异常导致的空输出，按端口空闲处理
+		return CHECKPASS, checkMess
 	}
-
-	return CHECKPASS, checkMess
-
 }
-
-/*
-func sudoPriv(sshHost string, sshPort int, userName string) string {
-
-    // check FE server user exist
-    var infoMess string
-    var cmd      string
-    // check user sudo privilege
-    cmd = "sudo date"
-    keyRsa := module.GSshKeyRsa
-    output, _ := utl.SshRun(userName, keyRsa, sshHost, sshPort, cmd)
-
-    if strings.Contains(string(output), "202") {
-        infoMess = fmt.Sprintf("Detect user has sudo privilege. [Host = %s, User = %s]", sshHost, userName)
-	utl.Logger.Debug(infoMess)
-	return CHECKPASS
-    } else {
-        infoMess = fmt.Sprintf("Detect user doesn't have sudo privilege. [Host = %s, User = %s]", sshHost, userName)
-	utl.Logger.Debug(infoMess)
-	return CHECKFAILED
-    }
-
-    return CHECKFAILED
-}
-*/
 
 func sshAuth(sshHost string, sshPort uint32) (string, string) {
 
 	// check ssh auth
 	var infoMess string
 	var checkMess string
+
 	keyRsa := module.GSshPrivateKey
 	sshUser := module.GConfigInfo.Global.User
 
 	output, _ := utl.SshRun(sshUser, keyRsa, sshHost, sshPort, "date")
-
 	if strings.Contains(string(output), "202") {
 		// detect the result has the year 202X, return PASS
 		infoMess = fmt.Sprintf("SSH auth check successfully, [host = %s]", sshHost)

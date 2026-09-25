@@ -33,17 +33,17 @@ func InitPlaygroundConf() {
 
 	tmp.FeServers = append(tmp.FeServers,
 		struct {
-			Host             string            `json:"host"`
-			SshPort          uint32            `json:"ssh_port"`
-			HttpPort         uint32            `json:"http_port"`
-			RpcPort          uint32            `json:"rpc_port"`
-			QueryPort        uint32            `json:"query_port"`
-			EditLogPort      uint32            `json:"edit_log_port"`
-			DeployDir        string            `json:"deploy_dir"`
-			MetaDir          string            `json:"meta_dir"`
-			LogDir           string            `json:"log_dir"`
-			PriorityNetworks string            `json:"priority_networks"`
-			Config           map[string]string `json:"config"`
+			Host             string                       `json:"host"`
+			SshPort          uint32                       `json:"ssh_port"`
+			HttpPort         uint32                       `json:"http_port"`
+			RpcPort          uint32                       `json:"rpc_port"`
+			QueryPort        uint32                       `json:"query_port"`
+			EditLogPort      uint32                       `json:"edit_log_port"`
+			DeployDir        string                       `json:"deploy_dir"`
+			MetaDir          string                       `json:"meta_dir"`
+			LogDir           string                       `json:"log_dir"`
+			PriorityNetworks string                       `json:"priority_networks"`
+			Config           map[string]module.FlexString `json:"config"`
 		}{
 			Host:             "127.0.0.1",
 			SshPort:          22,
@@ -60,17 +60,17 @@ func InitPlaygroundConf() {
 
 	tmp.BeServers = append(tmp.BeServers,
 		struct {
-			Host                 string            `json:"host"`
-			SshPort              uint32            `json:"ssh_port"`
-			BePort               uint32            `json:"be_port"`
-			WebServerPort        uint32            `json:"webserver_port"`
-			HeartbeatServicePort uint32            `json:"heartbeat_service_port"`
-			BrpcPort             uint32            `json:"brpc_port"`
-			DeployDir            string            `json:"deploy_dir"`
-			StorageDir           string            `json:"storage_dir"`
-			LogDir               string            `json:"log_dir"`
-			PriorityNetworks     string            `json:"priority_networks"`
-			Config               map[string]string `json:"config"`
+			Host                 string                       `json:"host"`
+			SshPort              uint32                       `json:"ssh_port"`
+			BePort               uint32                       `json:"be_port"`
+			WebServerPort        uint32                       `json:"webserver_port"`
+			HeartbeatServicePort uint32                       `json:"heartbeat_service_port"`
+			BrpcPort             uint32                       `json:"brpc_port"`
+			DeployDir            string                       `json:"deploy_dir"`
+			StorageDir           string                       `json:"storage_dir"`
+			LogDir               string                       `json:"log_dir"`
+			PriorityNetworks     string                       `json:"priority_networks"`
+			Config               map[string]module.FlexString `json:"config"`
 		}{
 			Host:                 "127.0.0.1",
 			SshPort:              22,
